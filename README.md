@@ -1,7 +1,7 @@
 # BITVAVO-GO
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/larscom/bitvavo-go)](https://goreportcard.com/report/github.com/larscom/bitvavo-go)
-[![Go Reference](https://pkg.go.dev/badge/github.com/larscom/go-bitvavo.svg)](https://pkg.go.dev/github.com/larscom/go-bitvavo)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larscom/bitvavo-go.svg)](https://pkg.go.dev/github.com/larscom/bitvavo-go)
 
 > GO **thread safe** library (WebSockets / HTTP) for Bitvavo v2 API (see: https://docs.bitvavo.com)
 
