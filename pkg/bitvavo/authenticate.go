@@ -1,6 +1,6 @@
 package bitvavo
 
 type Authenticate struct {
-	// Whether the user is succesfully authenticated.
+	// Whether the user is successfully authenticated.
 	Authenticated bool `json:"authenticated"`
 }
