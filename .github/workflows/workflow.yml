@@ -1,0 +1,25 @@
+name: workflow
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: './go.mod'
+      - run: make build
+      - run: make test
+      - name: Run proxy.golang.org
+        if: startsWith(github.ref, 'refs/tags/')
+        run: curl https://proxy.golang.org/github.com/larscom/bitvavo-go/@v/${{ github.ref_name }}.info
