@@ -1,6 +1,6 @@
 module github.com/larscom/bitvavo-go
 
-go 1.22.3
+go 1.22.4
 
 require (
 	github.com/goccy/go-json v0.10.3

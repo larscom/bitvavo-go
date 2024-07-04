@@ -18,7 +18,7 @@ func main() {
 		apiSecret = os.Getenv("API_SECRET")
 	)
 
-	client := bitvavo.NewPrivateRestClient(apiKey, apiSecret)
+	client := bitvavo.NewPrivateHTTPClient(apiKey, apiSecret)
 	markets, err := client.GetMarkets(context.Background())
 	if err != nil {
 		panic(err)
@@ -48,6 +48,4 @@ func main() {
 		}
 		log.Println(e.Value)
 	}
-
-	<-time.After(time.Second * 2)
 }

@@ -167,7 +167,7 @@ type privateConfig struct {
 	windowTime uint16
 }
 
-type restClient struct {
+type httpClient struct {
 	mu               sync.RWMutex
 	ratelimit        int64
 	ratelimitResetAt time.Time
@@ -175,21 +175,21 @@ type restClient struct {
 	config *privateConfig
 }
 
-func NewPublicRestClient() PublicAPI {
-	return &restClient{
+func NewPublicHTTPClient() PublicAPI {
+	return &httpClient{
 		ratelimit: -1,
 	}
 }
 
-func (c *restClient) GetRateLimit() int64 {
+func (c *httpClient) GetRateLimit() int64 {
 	return c.ratelimit
 }
 
-func (c *restClient) GetRateLimitResetAt() time.Time {
+func (c *httpClient) GetRateLimitResetAt() time.Time {
 	return c.ratelimitResetAt
 }
 
-func (c *restClient) GetTime(ctx context.Context) (int64, error) {
+func (c *httpClient) GetTime(ctx context.Context) (int64, error) {
 	resp, err := httpGet[map[string]float64](
 		ctx,
 		fmt.Sprintf("%s/time", bitvavoURL),
@@ -205,7 +205,7 @@ func (c *restClient) GetTime(ctx context.Context) (int64, error) {
 	return int64(resp["time"]), nil
 }
 
-func (c *restClient) GetMarkets(ctx context.Context) ([]Market, error) {
+func (c *httpClient) GetMarkets(ctx context.Context) ([]Market, error) {
 	return httpGet[[]Market](
 		ctx,
 		fmt.Sprintf("%s/markets", bitvavoURL),
@@ -216,7 +216,7 @@ func (c *restClient) GetMarkets(ctx context.Context) ([]Market, error) {
 	)
 }
 
-func (c *restClient) GetMarket(ctx context.Context, market string) (Market, error) {
+func (c *httpClient) GetMarket(ctx context.Context, market string) (Market, error) {
 	params := make(url.Values)
 	params.Add("market", market)
 
@@ -230,7 +230,7 @@ func (c *restClient) GetMarket(ctx context.Context, market string) (Market, erro
 	)
 }
 
-func (c *restClient) GetAssets(ctx context.Context) ([]Asset, error) {
+func (c *httpClient) GetAssets(ctx context.Context) ([]Asset, error) {
 	return httpGet[[]Asset](
 		ctx,
 		fmt.Sprintf("%s/assets", bitvavoURL),
@@ -241,7 +241,7 @@ func (c *restClient) GetAssets(ctx context.Context) ([]Asset, error) {
 	)
 }
 
-func (c *restClient) GetAsset(ctx context.Context, symbol string) (Asset, error) {
+func (c *httpClient) GetAsset(ctx context.Context, symbol string) (Asset, error) {
 	params := make(url.Values)
 	params.Add("symbol", symbol)
 
@@ -255,7 +255,7 @@ func (c *restClient) GetAsset(ctx context.Context, symbol string) (Asset, error)
 	)
 }
 
-func (c *restClient) GetOrderBook(ctx context.Context, market string, depth ...uint64) (Book, error) {
+func (c *httpClient) GetOrderBook(ctx context.Context, market string, depth ...uint64) (Book, error) {
 	params := make(url.Values)
 	if len(depth) > 0 {
 		params.Add("depth", fmt.Sprint(depth[0]))
@@ -271,7 +271,7 @@ func (c *restClient) GetOrderBook(ctx context.Context, market string, depth ...u
 	)
 }
 
-func (c *restClient) GetTrades(ctx context.Context, market string, opt ...Params) ([]Trade, error) {
+func (c *httpClient) GetTrades(ctx context.Context, market string, opt ...Params) ([]Trade, error) {
 	params := make(url.Values)
 	if len(opt) > 0 {
 		params = opt[0].Params()
@@ -286,7 +286,7 @@ func (c *restClient) GetTrades(ctx context.Context, market string, opt ...Params
 	)
 }
 
-func (c *restClient) GetCandles(ctx context.Context, market string, interval Interval, opt ...Params) ([]CandleOnly, error) {
+func (c *httpClient) GetCandles(ctx context.Context, market string, interval Interval, opt ...Params) ([]CandleOnly, error) {
 	params := make(url.Values)
 	if len(opt) > 0 {
 		params = opt[0].Params()
@@ -303,7 +303,7 @@ func (c *restClient) GetCandles(ctx context.Context, market string, interval Int
 	)
 }
 
-func (c *restClient) GetTickerPrices(ctx context.Context) ([]TickerPrice, error) {
+func (c *httpClient) GetTickerPrices(ctx context.Context) ([]TickerPrice, error) {
 	return httpGet[[]TickerPrice](
 		ctx,
 		fmt.Sprintf("%s/ticker/price", bitvavoURL),
@@ -314,7 +314,7 @@ func (c *restClient) GetTickerPrices(ctx context.Context) ([]TickerPrice, error)
 	)
 }
 
-func (c *restClient) GetTickerPrice(ctx context.Context, market string) (TickerPrice, error) {
+func (c *httpClient) GetTickerPrice(ctx context.Context, market string) (TickerPrice, error) {
 	params := make(url.Values)
 	params.Add("market", market)
 
@@ -328,7 +328,7 @@ func (c *restClient) GetTickerPrice(ctx context.Context, market string) (TickerP
 	)
 }
 
-func (c *restClient) GetTickerBooks(ctx context.Context) ([]TickerBook, error) {
+func (c *httpClient) GetTickerBooks(ctx context.Context) ([]TickerBook, error) {
 	return httpGet[[]TickerBook](
 		ctx,
 		fmt.Sprintf("%s/ticker/book", bitvavoURL),
@@ -339,7 +339,7 @@ func (c *restClient) GetTickerBooks(ctx context.Context) ([]TickerBook, error) {
 	)
 }
 
-func (c *restClient) GetTickerBook(ctx context.Context, market string) (TickerBook, error) {
+func (c *httpClient) GetTickerBook(ctx context.Context, market string) (TickerBook, error) {
 	params := make(url.Values)
 	params.Add("market", market)
 
@@ -353,7 +353,7 @@ func (c *restClient) GetTickerBook(ctx context.Context, market string) (TickerBo
 	)
 }
 
-func (c *restClient) GetTickers24h(ctx context.Context) ([]Ticker24hData, error) {
+func (c *httpClient) GetTickers24h(ctx context.Context) ([]Ticker24hData, error) {
 	return httpGet[[]Ticker24hData](
 		ctx,
 		fmt.Sprintf("%s/ticker/24h", bitvavoURL),
@@ -364,7 +364,7 @@ func (c *restClient) GetTickers24h(ctx context.Context) ([]Ticker24hData, error)
 	)
 }
 
-func (c *restClient) GetTicker24h(ctx context.Context, market string) (Ticker24hData, error) {
+func (c *httpClient) GetTicker24h(ctx context.Context, market string) (Ticker24hData, error) {
 	params := make(url.Values)
 	params.Add("market", market)
 
@@ -378,25 +378,25 @@ func (c *restClient) GetTicker24h(ctx context.Context, market string) (Ticker24h
 	)
 }
 
-func (c *restClient) updateRateLimit(ratelimit int64) {
+func (c *httpClient) updateRateLimit(ratelimit int64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ratelimit = ratelimit
 }
 
-func (c *restClient) updateRateLimitResetAt(resetAt time.Time) {
+func (c *httpClient) updateRateLimitResetAt(resetAt time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ratelimitResetAt = resetAt
 }
 
-func NewPrivateRestClient(apiKey, apiSecret string, windowTimeMs ...uint16) PrivateAPI {
+func NewPrivateHTTPClient(apiKey, apiSecret string, windowTimeMs ...uint16) PrivateAPI {
 	windowTime := util.IfOrElse(len(windowTimeMs) > 0, func() uint16 { return windowTimeMs[0] }, 10000)
 	if windowTime == 0 || windowTime > 60000 {
 		panic("windowTimeMs must be > 0 and <= 60000")
 	}
 
-	return &restClient{
+	return &httpClient{
 		ratelimit: -1,
 		config: &privateConfig{
 			apiKey:     apiKey,
@@ -406,7 +406,7 @@ func NewPrivateRestClient(apiKey, apiSecret string, windowTimeMs ...uint16) Priv
 	}
 }
 
-func (c *restClient) GetBalance(ctx context.Context, symbol ...string) ([]Balance, error) {
+func (c *httpClient) GetBalance(ctx context.Context, symbol ...string) ([]Balance, error) {
 	params := make(url.Values)
 	if len(symbol) > 0 {
 		params.Add("symbol", symbol[0])
@@ -422,7 +422,7 @@ func (c *restClient) GetBalance(ctx context.Context, symbol ...string) ([]Balanc
 	)
 }
 
-func (c *restClient) GetAccount(ctx context.Context) (Account, error) {
+func (c *httpClient) GetAccount(ctx context.Context) (Account, error) {
 	return httpGet[Account](
 		ctx,
 		fmt.Sprintf("%s/account", bitvavoURL),
@@ -433,7 +433,7 @@ func (c *restClient) GetAccount(ctx context.Context) (Account, error) {
 	)
 }
 
-func (c *restClient) GetOrders(ctx context.Context, market string, opt ...Params) ([]Order, error) {
+func (c *httpClient) GetOrders(ctx context.Context, market string, opt ...Params) ([]Order, error) {
 	params := make(url.Values)
 	if len(opt) > 0 {
 		params = opt[0].Params()
@@ -450,7 +450,7 @@ func (c *restClient) GetOrders(ctx context.Context, market string, opt ...Params
 	)
 }
 
-func (c *restClient) GetOrdersOpen(ctx context.Context, market ...string) ([]Order, error) {
+func (c *httpClient) GetOrdersOpen(ctx context.Context, market ...string) ([]Order, error) {
 	params := make(url.Values)
 	if len(market) > 0 {
 		params.Add("market", market[0])
@@ -466,7 +466,7 @@ func (c *restClient) GetOrdersOpen(ctx context.Context, market ...string) ([]Ord
 	)
 }
 
-func (c *restClient) GetOrder(ctx context.Context, market string, orderId string) (Order, error) {
+func (c *httpClient) GetOrder(ctx context.Context, market string, orderId string) (Order, error) {
 	params := make(url.Values)
 	params.Add("market", market)
 	params.Add("orderId", orderId)
@@ -481,7 +481,7 @@ func (c *restClient) GetOrder(ctx context.Context, market string, orderId string
 	)
 }
 
-func (c *restClient) CancelOrders(ctx context.Context, market ...string) ([]string, error) {
+func (c *httpClient) CancelOrders(ctx context.Context, market ...string) ([]string, error) {
 	params := make(url.Values)
 	if len(market) > 0 {
 		params.Add("market", market[0])
@@ -507,7 +507,7 @@ func (c *restClient) CancelOrders(ctx context.Context, market ...string) ([]stri
 	return orderIds, nil
 }
 
-func (c *restClient) CancelOrder(ctx context.Context, market string, orderId string) (string, error) {
+func (c *httpClient) CancelOrder(ctx context.Context, market string, orderId string) (string, error) {
 	params := make(url.Values)
 	params.Add("market", market)
 	params.Add("orderId", orderId)
@@ -527,7 +527,7 @@ func (c *restClient) CancelOrder(ctx context.Context, market string, orderId str
 	return resp["orderId"], nil
 }
 
-func (c *restClient) NewOrder(ctx context.Context, market string, side string, orderType string, order OrderNew) (Order, error) {
+func (c *httpClient) NewOrder(ctx context.Context, market string, side string, orderType string, order OrderNew) (Order, error) {
 	order.Market = market
 	order.Side = side
 	order.OrderType = orderType
@@ -542,7 +542,7 @@ func (c *restClient) NewOrder(ctx context.Context, market string, side string, o
 	)
 }
 
-func (c *restClient) UpdateOrder(ctx context.Context, market string, orderId string, order OrderUpdate) (Order, error) {
+func (c *httpClient) UpdateOrder(ctx context.Context, market string, orderId string, order OrderUpdate) (Order, error) {
 	order.Market = market
 	order.OrderId = orderId
 
@@ -557,7 +557,7 @@ func (c *restClient) UpdateOrder(ctx context.Context, market string, orderId str
 	)
 }
 
-func (c *restClient) GetTradesHistoric(ctx context.Context, market string, opt ...Params) ([]TradeHistoric, error) {
+func (c *httpClient) GetTradesHistoric(ctx context.Context, market string, opt ...Params) ([]TradeHistoric, error) {
 	params := make(url.Values)
 	if len(opt) > 0 {
 		params = opt[0].Params()
@@ -574,7 +574,7 @@ func (c *restClient) GetTradesHistoric(ctx context.Context, market string, opt .
 	)
 }
 
-func (c *restClient) GetDepositAsset(ctx context.Context, symbol string) (DepositAsset, error) {
+func (c *httpClient) GetDepositAsset(ctx context.Context, symbol string) (DepositAsset, error) {
 	params := make(url.Values)
 	params.Add("symbol", symbol)
 
@@ -588,7 +588,7 @@ func (c *restClient) GetDepositAsset(ctx context.Context, symbol string) (Deposi
 	)
 }
 
-func (c *restClient) GetDepositHistory(ctx context.Context, opt ...Params) ([]DepositHistory, error) {
+func (c *httpClient) GetDepositHistory(ctx context.Context, opt ...Params) ([]DepositHistory, error) {
 	params := make(url.Values)
 	if len(opt) > 0 {
 		params = opt[0].Params()
@@ -603,7 +603,7 @@ func (c *restClient) GetDepositHistory(ctx context.Context, opt ...Params) ([]De
 	)
 }
 
-func (c *restClient) GetWithdrawalHistory(ctx context.Context, opt ...Params) ([]WithdrawalHistory, error) {
+func (c *httpClient) GetWithdrawalHistory(ctx context.Context, opt ...Params) ([]WithdrawalHistory, error) {
 	params := make(url.Values)
 	if len(opt) > 0 {
 		params = opt[0].Params()
@@ -618,7 +618,7 @@ func (c *restClient) GetWithdrawalHistory(ctx context.Context, opt ...Params) ([
 	)
 }
 
-func (c *restClient) Withdraw(ctx context.Context, symbol string, amount float64, address string, withdrawal Withdrawal) (WithDrawalResponse, error) {
+func (c *httpClient) Withdraw(ctx context.Context, symbol string, amount float64, address string, withdrawal Withdrawal) (WithDrawalResponse, error) {
 	withdrawal.Symbol = symbol
 	withdrawal.Amount = amount
 	withdrawal.Address = address
