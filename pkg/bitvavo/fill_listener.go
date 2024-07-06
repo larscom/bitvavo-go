@@ -2,7 +2,6 @@ package bitvavo
 
 import (
 	"context"
-	"errors"
 	"sync"
 )
 
@@ -81,7 +80,7 @@ func (t *FillListener) Close() error {
 	defer t.mu.Unlock()
 
 	if len(t.subscriptions) == 0 {
-		return errors.New("no subscriptions yet, start listening first")
+		return ErrNoSubscriptions
 	}
 
 	if err := t.ws.Unsubscribe(t.subscriptions); err != nil {
@@ -115,7 +114,7 @@ func (t *FillListener) resubscriber() {
 						t.chn <- FillEvent{Error: err}
 					}
 				} else {
-					t.chn <- FillEvent{Error: errors.New("received auth event from server, but was not authenticated")}
+					t.chn <- FillEvent{Error: ErrNoAuth}
 				}
 			}
 		}

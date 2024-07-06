@@ -15,6 +15,14 @@ import (
 	"github.com/larscom/bitvavo-go/internal/util"
 )
 
+var (
+	ErrHeaderNoValue = func(h string) error { return fmt.Errorf("header: %s didn't contain a value", h) }
+
+	ErrNOKResponse = func(code int, b []byte) error {
+		return fmt.Errorf("did not get OK response, code=%d, body=%s", code, string(b))
+	}
+)
+
 func httpDelete[T any](
 	ctx context.Context,
 	url string,
@@ -129,7 +137,7 @@ func unwrapErr(response *http.Response) error {
 
 	var apiError *ApiError
 	if err := json.Unmarshal(bytes, &apiError); err != nil {
-		return fmt.Errorf("did not get OK response, code=%d, body=%s", response.StatusCode, string(bytes))
+		return ErrNOKResponse(response.StatusCode, bytes)
 	}
 	return apiError
 }
@@ -142,13 +150,13 @@ func updateRateLimits(
 	for key, value := range response.Header {
 		if key == headerRatelimit {
 			if len(value) == 0 {
-				return fmt.Errorf("header: %s didn't contain a value", headerRatelimit)
+				return ErrHeaderNoValue(headerRatelimit)
 			}
 			updateRateLimit(util.MustInt64(value[0]))
 		}
 		if key == headerRatelimitResetAt {
 			if len(value) == 0 {
-				return fmt.Errorf("header: %s didn't contain a value", headerRatelimitResetAt)
+				return ErrHeaderNoValue(headerRatelimitResetAt)
 			}
 			updateRateLimitResetAt(time.UnixMilli(util.MustInt64(value[0])))
 		}

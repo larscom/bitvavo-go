@@ -17,6 +17,8 @@ import (
 
 const bitvavoWSURL = "wss://ws.bitvavo.com/v2"
 
+var ErrNotEventType = errors.New("not an event type")
+
 type chn struct {
 	Name      string   `json:"name"`
 	Intervals []string `json:"interval,omitempty"`
@@ -70,7 +72,7 @@ func (d *WebSocketEventData) UnmarshalJSON(b []byte) error {
 
 	event := util.GetOrEmpty[string]("event", j)
 	if event == "" {
-		return errors.New("not an event type")
+		return ErrNotEventType
 	}
 
 	d.Event = *webSocketEvents.Parse(event)

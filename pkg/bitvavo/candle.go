@@ -9,6 +9,8 @@ import (
 	"github.com/larscom/bitvavo-go/internal/util"
 )
 
+var ErrExpectedCandleLenght = func(exp, act int) error { return fmt.Errorf("expected length '%d' for candle, but was: %d", exp, act) }
+
 type CandleParams struct {
 	// Return the limit most recent candlesticks only.
 	// Default: 1440
@@ -52,7 +54,7 @@ func (c *CandleOnly) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if len(candle) != 6 {
-		return fmt.Errorf("expected length '6' for candle, but was: %d", len(candle))
+		return ErrExpectedCandleLenght(6, len(candle))
 	}
 
 	c.Timestamp = int64(candle[0].(float64))
@@ -90,12 +92,12 @@ func (c *Candle) UnmarshalJSON(bytes []byte) error {
 	)
 
 	if len(candles) != 1 {
-		return fmt.Errorf("expected length '1' for candles, but was: %d", len(candles))
+		return ErrExpectedCandleLenght(1, len(candles))
 	}
 
 	candle := candles[0].([]any)
 	if len(candle) != 6 {
-		return fmt.Errorf("expected length '6' for candle, but was: %d", len(candle))
+		return ErrExpectedCandleLenght(6, len(candle))
 	}
 
 	c.Market = market

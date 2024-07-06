@@ -2,7 +2,6 @@ package bitvavo
 
 import (
 	"context"
-	"errors"
 	"sync"
 )
 
@@ -67,7 +66,7 @@ func (t *TradesListener) Close() error {
 	defer t.mu.Unlock()
 
 	if len(t.subscriptions) == 0 {
-		return errors.New("no subscriptions yet, start listening first")
+		return ErrNoSubscriptions
 	}
 
 	if err := t.ws.Unsubscribe(t.subscriptions); err != nil {

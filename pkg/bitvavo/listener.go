@@ -2,7 +2,13 @@ package bitvavo
 
 import (
 	"context"
+	"errors"
 	"sync"
+)
+
+var (
+	ErrNoSubscriptions = errors.New("no subscriptions yet, start listening first")
+	ErrNoAuth          = errors.New("received auth event from server, but was not authenticated")
 )
 
 type ListenerEvent[T any] struct {

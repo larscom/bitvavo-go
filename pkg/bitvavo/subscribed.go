@@ -6,6 +6,8 @@ import (
 	"github.com/goccy/go-json"
 )
 
+var ErrUnexpectedType = func(v any) error { return fmt.Errorf("unexpected type '%s'", v) }
+
 type Unsubscribed struct {
 	Subscribed
 }
@@ -54,7 +56,7 @@ func (s *Subscribed) UnmarshalJSON(bytes []byte) error {
 
 			}
 		default:
-			return fmt.Errorf("unexpected type '%s'", v)
+			return ErrUnexpectedType(v)
 		}
 	}
 
