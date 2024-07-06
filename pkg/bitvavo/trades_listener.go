@@ -13,17 +13,15 @@ func NewTradesListener() *TradesListener {
 	chn := make(chan TradeEvent)
 	rchn := make(chan struct{})
 
-	onMessage := func(data WebSocketEventData, err error) {
-		if err != nil {
-			chn <- TradeEvent{Error: err}
-		} else if data.Event == EVENT_TRADE {
-			var trade Trade
-			chn <- TradeEvent{Value: trade, Error: data.Decode(&trade)}
-		}
+	l := &TradesListener{
+		chn:     chn,
+		rchn:    rchn,
+		once:    new(sync.Once),
+		channel: CHANNEL_TRADES,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ws, err := NewWebSocket(ctx, onMessage, func() {
+	ws, err := NewWebSocket(ctx, l.onMessage, func() {
 		rchn <- struct{}{}
 	})
 
@@ -31,63 +29,72 @@ func NewTradesListener() *TradesListener {
 		panic(err)
 	}
 
-	return &TradesListener{
-		ws:            ws,
-		chn:           chn,
-		rchn:          rchn,
-		once:          &sync.Once{},
-		subscriptions: make([]Subscription, 0),
-		closefn:       cancel,
-	}
+	l.closefn = cancel
+	l.ws = ws
+
+	return l
 }
 
 // Listen for events, you 'can' call this function multiple times.
 // The same channel is returned for each function call, meaning that all channel
 // receivers get the same data.
-func (t *TradesListener) Listen(markets []string) (<-chan TradeEvent, error) {
-	subs := []Subscription{NewSubscription(CHANNEL_TRADES, markets)}
-	if err := t.ws.Subscribe(subs); err != nil {
+func (l *TradesListener) Listen(markets []string) (<-chan TradeEvent, error) {
+	if err := l.ws.Subscribe([]Subscription{NewSubscription(l.channel, markets)}); err != nil {
 		return nil, err
 	}
 
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	t.subscriptions = append(t.subscriptions, subs...)
+	go l.resubscriber()
 
-	go t.resubscriber()
-
-	return t.chn, nil
+	return l.chn, nil
 }
 
 // Graceful shutdown, once you close a listener it can't be reused, you have to
 // create a new one.
-func (t *TradesListener) Close() error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	if len(t.subscriptions) == 0 {
+func (l *TradesListener) Close() error {
+	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
 	}
 
-	if err := t.ws.Unsubscribe(t.subscriptions); err != nil {
+	if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
 		return err
 	}
 
-	t.closefn()
+	l.closefn()
 
-	close(t.chn)
-	close(t.rchn)
+	close(l.chn)
+	close(l.rchn)
 
-	t.subscriptions = nil
+	l.subscriptions = nil
 
 	return nil
 }
 
-func (t *TradesListener) resubscriber() {
-	t.once.Do(func() {
-		for range t.rchn {
-			if err := t.ws.Subscribe(t.subscriptions); err != nil {
-				t.chn <- TradeEvent{Error: err}
+func (l *TradesListener) onMessage(data WebSocketEventData, err error) {
+	if err != nil {
+		l.chn <- TradeEvent{Error: err}
+	} else if data.Event == EVENT_SUBSCRIBED {
+		var subscribed Subscribed
+		if err := data.Decode(&subscribed); err != nil {
+			l.chn <- TradeEvent{Error: err}
+		} else {
+			markets, ok := subscribed.Subscriptions[l.channel]
+			if ok {
+				l.subscriptions = []Subscription{NewSubscription(l.channel, markets)}
+			} else {
+				l.chn <- TradeEvent{Error: ErrExpectedChannel(l.channel)}
+			}
+		}
+	} else if data.Event == EVENT_TRADE {
+		var trade Trade
+		l.chn <- TradeEvent{Value: trade, Error: data.Decode(&trade)}
+	}
+}
+
+func (l *TradesListener) resubscriber() {
+	l.once.Do(func() {
+		for range l.rchn {
+			if err := l.ws.Subscribe(l.subscriptions); err != nil {
+				l.chn <- TradeEvent{Error: err}
 			}
 		}
 	})

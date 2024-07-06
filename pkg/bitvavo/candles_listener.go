@@ -13,17 +13,15 @@ func NewCandlesListener() *CandlesListener {
 	chn := make(chan CandleEvent)
 	rchn := make(chan struct{})
 
-	onMessage := func(data WebSocketEventData, err error) {
-		if err != nil {
-			chn <- CandleEvent{Error: err}
-		} else if data.Event == EVENT_CANDLE {
-			var candle Candle
-			chn <- CandleEvent{Value: candle, Error: data.Decode(&candle)}
-		}
+	l := &CandlesListener{
+		chn:     chn,
+		rchn:    rchn,
+		once:    new(sync.Once),
+		channel: CHANNEL_CANDLES,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ws, err := NewWebSocket(ctx, onMessage, func() {
+	ws, err := NewWebSocket(ctx, l.onMessage, func() {
 		rchn <- struct{}{}
 	})
 
@@ -31,63 +29,78 @@ func NewCandlesListener() *CandlesListener {
 		panic(err)
 	}
 
-	return &CandlesListener{
-		ws:            ws,
-		chn:           chn,
-		rchn:          rchn,
-		once:          &sync.Once{},
-		subscriptions: make([]Subscription, 0),
-		closefn:       cancel,
-	}
+	l.closefn = cancel
+	l.ws = ws
+
+	return l
 }
 
 // Listen for events, you 'can' call this function multiple times.
 // The same channel is returned for each function call, meaning that all channel
 // receivers get the same data.
-func (t *CandlesListener) Listen(markets []string, intervals []Interval) (<-chan CandleEvent, error) {
-	subs := []Subscription{NewSubscription(CHANNEL_CANDLES, markets, intervals...)}
-	if err := t.ws.Subscribe(subs); err != nil {
+func (l *CandlesListener) Listen(markets []string, intervals []Interval) (<-chan CandleEvent, error) {
+	if err := l.ws.Subscribe([]Subscription{NewSubscription(l.channel, markets, intervals...)}); err != nil {
 		return nil, err
 	}
 
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	t.subscriptions = append(t.subscriptions, subs...)
+	go l.resubscriber()
 
-	go t.resubscriber()
-
-	return t.chn, nil
+	return l.chn, nil
 }
 
 // Graceful shutdown, once you close a listener it can't be reused, you have to
 // create a new one.
-func (t *CandlesListener) Close() error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	if len(t.subscriptions) == 0 {
+func (l *CandlesListener) Close() error {
+	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
 	}
 
-	if err := t.ws.Unsubscribe(t.subscriptions); err != nil {
+	if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
 		return err
 	}
 
-	t.closefn()
+	l.closefn()
 
-	close(t.chn)
-	close(t.rchn)
+	close(l.chn)
+	close(l.rchn)
 
-	t.subscriptions = nil
+	l.subscriptions = nil
 
 	return nil
 }
 
-func (t *CandlesListener) resubscriber() {
-	t.once.Do(func() {
-		for range t.rchn {
-			if err := t.ws.Subscribe(t.subscriptions); err != nil {
-				t.chn <- CandleEvent{Error: err}
+func (l *CandlesListener) onMessage(data WebSocketEventData, err error) {
+	if err != nil {
+		l.chn <- CandleEvent{Error: err}
+	} else if data.Event == EVENT_SUBSCRIBED {
+		var subscribed Subscribed
+		if err := data.Decode(&subscribed); err != nil {
+			l.chn <- CandleEvent{Error: err}
+		} else {
+			subs, ok := subscribed.SubscriptionsInterval[l.channel]
+			if ok {
+				markets := make([]string, 0)
+				intervals := make([]Interval, 0)
+				for i, m := range subs {
+					intervals = append(intervals, i)
+					markets = append(markets, m...)
+				}
+				l.subscriptions = []Subscription{NewSubscription(l.channel, markets, intervals...)}
+			} else {
+				l.chn <- CandleEvent{Error: ErrExpectedChannel(l.channel)}
+			}
+		}
+	} else if data.Event == EVENT_CANDLE {
+		var candle Candle
+		l.chn <- CandleEvent{Value: candle, Error: data.Decode(&candle)}
+	}
+}
+
+func (l *CandlesListener) resubscriber() {
+	l.once.Do(func() {
+		for range l.rchn {
+			if err := l.ws.Subscribe(l.subscriptions); err != nil {
+				l.chn <- CandleEvent{Error: err}
 			}
 		}
 	})

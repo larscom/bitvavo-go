@@ -23,14 +23,15 @@ type Listener[T any] struct {
 	chn           chan (T)
 	rchn          chan (struct{})
 	once          *sync.Once
-	mu            sync.RWMutex
+	channel       Channel
 	subscriptions []Subscription
 	closefn       context.CancelFunc
 }
 
 type AuthListener[T any] struct {
 	Listener[T]
-	apiKey    string
-	apiSecret string
-	authchn   chan (bool)
+	apiKey      string
+	apiSecret   string
+	authchn     chan (bool)
+	pendingsubs chan ([]Subscription)
 }

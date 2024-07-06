@@ -86,9 +86,10 @@ var (
 type OrderTriggerType enum.Member[string]
 
 var (
-	orderTriggerType         = enum.NewBuilder[string, OrderTriggerType]()
-	ORDER_TRIGGER_TYPE_PRICE = orderTriggerType.Add(OrderTriggerType{"price"})
-	orderTriggerTypes        = orderTriggerType.Enum()
+	orderTriggerType           = enum.NewBuilder[string, OrderTriggerType]()
+	ORDER_TRIGGER_TYPE_DEFAULT = ORDER_TRIGGER_TYPE_PRICE
+	ORDER_TRIGGER_TYPE_PRICE   = orderTriggerType.Add(OrderTriggerType{"price"})
+	orderTriggerTypes          = orderTriggerType.Enum()
 )
 
 type OrderTriggerRef enum.Member[string]
@@ -105,22 +106,24 @@ var (
 type TimeInForce enum.Member[string]
 
 var (
-	timeInForce       = enum.NewBuilder[string, TimeInForce]()
-	TIME_IN_FORCE_GTC = timeInForce.Add(TimeInForce{"GTC"})
-	TIME_IN_FORCE_IOC = timeInForce.Add(TimeInForce{"IOC"})
-	TIME_IN_FORCE_FOK = timeInForce.Add(TimeInForce{"FOK"})
-	timeInForces      = timeInForce.Enum()
+	timeInForce           = enum.NewBuilder[string, TimeInForce]()
+	TIME_IN_FORCE_DEFAULT = TIME_IN_FORCE_GTC
+	TIME_IN_FORCE_GTC     = timeInForce.Add(TimeInForce{"GTC"})
+	TIME_IN_FORCE_IOC     = timeInForce.Add(TimeInForce{"IOC"})
+	TIME_IN_FORCE_FOK     = timeInForce.Add(TimeInForce{"FOK"})
+	timeInForces          = timeInForce.Enum()
 )
 
 type SelfTradePrevention enum.Member[string]
 
 var (
-	selfTradePrevention       = enum.NewBuilder[string, SelfTradePrevention]()
-	SELF_TRADE_PREVENTION_DAC = selfTradePrevention.Add(SelfTradePrevention{"decrementAndCancel"})
-	SELF_TRADE_PREVENTION_CO  = selfTradePrevention.Add(SelfTradePrevention{"cancelOldest"})
-	SELF_TRADE_PREVENTION_CN  = selfTradePrevention.Add(SelfTradePrevention{"cancelNewest"})
-	SELF_TRADE_PREVENTION_CB  = selfTradePrevention.Add(SelfTradePrevention{"cancelBoth"})
-	selfTradePreventions      = selfTradePrevention.Enum()
+	selfTradePrevention           = enum.NewBuilder[string, SelfTradePrevention]()
+	SELF_TRADE_PREVENTION_DEFAULT = SELF_TRADE_PREVENTION_DAC
+	SELF_TRADE_PREVENTION_DAC     = selfTradePrevention.Add(SelfTradePrevention{"decrementAndCancel"})
+	SELF_TRADE_PREVENTION_CO      = selfTradePrevention.Add(SelfTradePrevention{"cancelOldest"})
+	SELF_TRADE_PREVENTION_CN      = selfTradePrevention.Add(SelfTradePrevention{"cancelNewest"})
+	SELF_TRADE_PREVENTION_CB      = selfTradePrevention.Add(SelfTradePrevention{"cancelBoth"})
+	selfTradePreventions          = selfTradePrevention.Enum()
 )
 
 type Order struct {
@@ -295,20 +298,15 @@ func (o *Order) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-// TODO: convert some types to enums
 type OrderNew struct {
 	// The market in which the order should be placed (e.g: ETH-EUR)
 	Market string `json:"market"`
 
 	// When placing a buy order the base currency will be bought for the quote currency. When placing a sell order the base currency will be sold for the quote currency.
-	//
-	// Enum: "buy" | "sell"
-	Side string `json:"side"`
+	Side Side `json:"side"`
 
 	// For limit orders, amount and price are required. For market orders either amount or amountQuote is required.
-	//
-	// Enum: "market" | "limit" | "stopLoss" | "stopLossLimit" | "takeProfit" | "takeProfitLimit"
-	OrderType string `json:"orderType"`
+	OrderType OrderType `json:"orderType"`
 
 	// Specifies the amount of the base asset that will be bought/sold.
 	Amount float64 `json:"amount,omitempty"`
@@ -325,15 +323,11 @@ type OrderNew struct {
 
 	// Only for stop orders: Only allows price for now. A triggerAmount of 4000 and a triggerType of price will generate a triggerPrice of 4000.
 	// Combine this parameter with triggerAmount and triggerReference to create the desired trigger.
-	//
-	// Enum: "price"
-	TriggerType string `json:"triggerType,omitempty"`
+	TriggerType OrderTriggerType `json:"triggerType,omitempty"`
 
 	// Only for stop orders: Use this to determine which parameter will trigger the order.
 	// Combine this parameter with triggerAmount and triggerType to create the desired trigger.
-	//
-	// Enum: "lastTrade" | "bestBid" | "bestAsk" | "midPrice"
-	TriggerReference string `json:"triggerReference,omitempty"`
+	TriggerReference OrderTriggerRef `json:"triggerReference,omitempty"`
 
 	// Only for limit orders: Determines how long orders remain active.
 	// Possible values: Good-Til-Canceled (GTC), Immediate-Or-Cancel (IOC), Fill-Or-Kill (FOK).
@@ -341,20 +335,17 @@ type OrderNew struct {
 	// IOC orders will fill against existing orders, but will cancel any remaining amount after that.
 	// FOK orders will fill against existing orders in its entirety, or will be canceled (if the entire order cannot be filled).
 	//
-	// Enum: "GTC" | "IOC" | "FOK"
 	// Default: "GTC"
-	TimeInForce string `json:"timeInForce,omitempty"`
+	TimeInForce TimeInForce `json:"timeInForce,omitempty"`
 
 	// Self trading is not allowed on Bitvavo. Multiple options are available to prevent this from happening.
 	// The default ‘decrementAndCancel’ decrements both orders by the amount that would have been filled, which in turn cancels the smallest of the two orders.
 	// ‘cancelOldest’ will cancel the entire older order and places the new order.
 	// ‘cancelNewest’ will cancel the order that is submitted.
 	// ‘cancelBoth’ will cancel both the current and the old order.
-	// Default: "decrementAndCancel"
 	//
-	// Enum: "decrementAndCancel" | "cancelOldest" | "cancelNewest" | "cancelBoth"
 	// Default: "decrementAndCancel"
-	SelfTradePrevention string `json:"selfTradePrevention,omitempty"`
+	SelfTradePrevention SelfTradePrevention `json:"selfTradePrevention,omitempty"`
 
 	// Only for limit orders: When postOnly is set to true, the order will not fill against existing orders.
 	// This is useful if you want to ensure you pay the maker fee. If the order would fill against existing orders, the entire order will be canceled.
@@ -376,7 +367,30 @@ type OrderNew struct {
 	ResponseRequired bool `json:"responseRequired,omitempty"`
 }
 
-// TODO: convert some types to enums
+func (o OrderNew) MarshalJSON() ([]byte, error) {
+	type O OrderNew
+
+	target := &struct {
+		O
+		Side                string `json:"side"`
+		OrderType           string `json:"orderType"`
+		TriggerType         string `json:"triggerType,omitempty"`
+		TriggerReference    string `json:"triggerReference,omitempty"`
+		TimeInForce         string `json:"timeInForce,omitempty"`
+		SelfTradePrevention string `json:"selfTradePrevention,omitempty"`
+	}{
+		O:                   (O)(o),
+		Side:                o.Side.Value,
+		OrderType:           o.OrderType.Value,
+		TriggerType:         o.TriggerType.Value,
+		TriggerReference:    o.TriggerReference.Value,
+		TimeInForce:         o.TimeInForce.Value,
+		SelfTradePrevention: o.SelfTradePrevention.Value,
+	}
+
+	return json.Marshal(target)
+}
+
 type OrderUpdate struct {
 	// The market for which an order should be updated
 	Market string `json:"market"`
@@ -406,20 +420,17 @@ type OrderUpdate struct {
 	// IOC orders will fill against existing orders, but will cancel any remaining amount after that.
 	// FOK orders will fill against existing orders in its entirety, or will be canceled (if the entire order cannot be filled).
 	//
-	// Enum: "GTC" | "IOC" | "FOK"
 	// Default: "GTC"
-	TimeInForce string `json:"timeInForce,omitempty"`
+	TimeInForce TimeInForce `json:"timeInForce,omitempty"`
 
 	// Self trading is not allowed on Bitvavo. Multiple options are available to prevent this from happening.
 	// The default ‘decrementAndCancel’ decrements both orders by the amount that would have been filled, which in turn cancels the smallest of the two orders.
 	// ‘cancelOldest’ will cancel the entire older order and places the new order.
 	// ‘cancelNewest’ will cancel the order that is submitted.
 	// ‘cancelBoth’ will cancel both the current and the old order.
-	// Default: "decrementAndCancel"
 	//
-	// Enum: "decrementAndCancel" | "cancelOldest" | "cancelNewest" | "cancelBoth"
 	// Default: "decrementAndCancel"
-	SelfTradePrevention string `json:"selfTradePrevention,omitempty"`
+	SelfTradePrevention SelfTradePrevention `json:"selfTradePrevention,omitempty"`
 
 	// Only for limit orders: When postOnly is set to true, the order will not fill against existing orders.
 	// This is useful if you want to ensure you pay the maker fee. If the order would fill against existing orders, the entire order will be canceled.
@@ -432,4 +443,20 @@ type OrderUpdate struct {
 	//
 	// Default: true
 	ResponseRequired bool `json:"responseRequired,omitempty"`
+}
+
+func (o OrderUpdate) MarshalJSON() ([]byte, error) {
+	type O OrderUpdate
+
+	target := &struct {
+		O
+		TimeInForce         string `json:"timeInForce,omitempty"`
+		SelfTradePrevention string `json:"selfTradePrevention,omitempty"`
+	}{
+		O:                   (O)(o),
+		TimeInForce:         o.TimeInForce.Value,
+		SelfTradePrevention: o.SelfTradePrevention.Value,
+	}
+
+	return json.Marshal(target)
 }

@@ -135,7 +135,7 @@ type PrivateAPI interface {
 	// NewOrder places a new order on the exchange.
 	//
 	// It returns the new order if it was successfully created
-	NewOrder(ctx context.Context, market string, side string, orderType string, order OrderNew) (Order, error)
+	NewOrder(ctx context.Context, market string, side Side, orderType OrderType, order OrderNew) (Order, error)
 
 	// UpdateOrder updates an existing order on the exchange.
 	//
@@ -527,10 +527,11 @@ func (c *httpClient) CancelOrder(ctx context.Context, market string, orderId str
 	return resp["orderId"], nil
 }
 
-func (c *httpClient) NewOrder(ctx context.Context, market string, side string, orderType string, order OrderNew) (Order, error) {
+func (c *httpClient) NewOrder(ctx context.Context, market string, side Side, orderType OrderType, order OrderNew) (Order, error) {
 	order.Market = market
 	order.Side = side
 	order.OrderType = orderType
+
 	return httpPost[Order](
 		ctx,
 		fmt.Sprintf("%s/order", bitvavoURL),

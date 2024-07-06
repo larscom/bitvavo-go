@@ -13,17 +13,15 @@ func NewBookListener() *BookListener {
 	chn := make(chan BookEvent)
 	rchn := make(chan struct{})
 
-	onMessage := func(data WebSocketEventData, err error) {
-		if err != nil {
-			chn <- BookEvent{Error: err}
-		} else if data.Event == EVENT_BOOK {
-			var book Book
-			chn <- BookEvent{Value: book, Error: data.Decode(&book)}
-		}
+	l := &BookListener{
+		chn:     chn,
+		rchn:    rchn,
+		once:    new(sync.Once),
+		channel: CHANNEL_BOOK,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ws, err := NewWebSocket(ctx, onMessage, func() {
+	ws, err := NewWebSocket(ctx, l.onMessage, func() {
 		rchn <- struct{}{}
 	})
 
@@ -31,63 +29,72 @@ func NewBookListener() *BookListener {
 		panic(err)
 	}
 
-	return &BookListener{
-		ws:            ws,
-		chn:           chn,
-		rchn:          rchn,
-		once:          &sync.Once{},
-		subscriptions: make([]Subscription, 0),
-		closefn:       cancel,
-	}
+	l.closefn = cancel
+	l.ws = ws
+
+	return l
 }
 
 // Listen for events, you 'can' call this function multiple times.
 // The same channel is returned for each function call, meaning that all channel
 // receivers get the same data.
-func (t *BookListener) Listen(markets []string) (<-chan BookEvent, error) {
-	subs := []Subscription{NewSubscription(CHANNEL_BOOK, markets)}
-	if err := t.ws.Subscribe(subs); err != nil {
+func (l *BookListener) Listen(markets []string) (<-chan BookEvent, error) {
+	if err := l.ws.Subscribe([]Subscription{NewSubscription(l.channel, markets)}); err != nil {
 		return nil, err
 	}
 
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	t.subscriptions = append(t.subscriptions, subs...)
+	go l.resubscriber()
 
-	go t.resubscriber()
-
-	return t.chn, nil
+	return l.chn, nil
 }
 
 // Graceful shutdown, once you close a listener it can't be reused, you have to
 // create a new one.
-func (t *BookListener) Close() error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	if len(t.subscriptions) == 0 {
+func (l *BookListener) Close() error {
+	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
 	}
 
-	if err := t.ws.Unsubscribe(t.subscriptions); err != nil {
+	if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
 		return err
 	}
 
-	t.closefn()
+	l.closefn()
 
-	close(t.chn)
-	close(t.rchn)
+	close(l.chn)
+	close(l.rchn)
 
-	t.subscriptions = nil
+	l.subscriptions = nil
 
 	return nil
 }
 
-func (t *BookListener) resubscriber() {
-	t.once.Do(func() {
-		for range t.rchn {
-			if err := t.ws.Subscribe(t.subscriptions); err != nil {
-				t.chn <- BookEvent{Error: err}
+func (l *BookListener) onMessage(data WebSocketEventData, err error) {
+	if err != nil {
+		l.chn <- BookEvent{Error: err}
+	} else if data.Event == EVENT_SUBSCRIBED {
+		var subscribed Subscribed
+		if err := data.Decode(&subscribed); err != nil {
+			l.chn <- BookEvent{Error: err}
+		} else {
+			markets, ok := subscribed.Subscriptions[l.channel]
+			if ok {
+				l.subscriptions = []Subscription{NewSubscription(l.channel, markets)}
+			} else {
+				l.chn <- BookEvent{Error: ErrExpectedChannel(l.channel)}
+			}
+		}
+	} else if data.Event == EVENT_BOOK {
+		var book Book
+		l.chn <- BookEvent{Value: book, Error: data.Decode(&book)}
+	}
+}
+
+func (l *BookListener) resubscriber() {
+	l.once.Do(func() {
+		for range l.rchn {
+			if err := l.ws.Subscribe(l.subscriptions); err != nil {
+				l.chn <- BookEvent{Error: err}
 			}
 		}
 	})

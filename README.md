@@ -51,11 +51,11 @@ For each event on the Bitvavo platform there is a listener available. A listener
 import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {
-	// listen for ticker (public) events
-	listener := bitvavo.NewTickerListener()
+	// listen for candle (public) events
+	listener := bitvavo.NewCandlesListener()
 	defer listener.Close()
 
-	chn, err := listener.Listen([]string{"ETH-EUR"})
+	chn, err := listener.Listen([]string{"ETH-EUR"}, []bitvavo.Interval{bitvavo.INTERVAL_1M})
 	if err != nil {
 		panic(err)
 	}
