@@ -13,17 +13,15 @@ func NewTickerListener() *TickerListener {
 	chn := make(chan TickerEvent)
 	rchn := make(chan struct{})
 
-	onMessage := func(data WebSocketEventData, err error) {
-		if err != nil {
-			chn <- TickerEvent{Error: err}
-		} else if data.Event == EVENT_TICKER {
-			var ticker Ticker
-			chn <- TickerEvent{Value: ticker, Error: data.Decode(&ticker)}
-		}
+	listener := &TickerListener{
+		chn:           chn,
+		rchn:          rchn,
+		once:          &sync.Once{},
+		subscriptions: make([]Subscription, 0),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ws, err := NewWebSocket(ctx, onMessage, func() {
+	ws, err := NewWebSocket(ctx, onMessage(listener, chn), func() {
 		rchn <- struct{}{}
 	})
 
@@ -31,14 +29,10 @@ func NewTickerListener() *TickerListener {
 		panic(err)
 	}
 
-	return &TickerListener{
-		ws:            ws,
-		chn:           chn,
-		rchn:          rchn,
-		once:          &sync.Once{},
-		subscriptions: make([]Subscription, 0),
-		closefn:       cancel,
-	}
+	listener.closefn = cancel
+	listener.ws = ws
+
+	return listener
 }
 
 // Listen for events, you 'can' call this function multiple times.
@@ -49,10 +43,6 @@ func (t *TickerListener) Listen(markets []string) (<-chan TickerEvent, error) {
 	if err := t.ws.Subscribe(subs); err != nil {
 		return nil, err
 	}
-
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	t.subscriptions = append(t.subscriptions, subs...)
 
 	go t.resubscriber()
 
@@ -81,6 +71,29 @@ func (t *TickerListener) Close() error {
 	t.subscriptions = nil
 
 	return nil
+}
+
+func onMessage(listener *TickerListener, chn chan<- TickerEvent) func(data WebSocketEventData, err error) {
+	return func(data WebSocketEventData, err error) {
+		if err != nil {
+			chn <- TickerEvent{Error: err}
+		} else if data.Event == EVENT_SUBSCRIBED {
+			var subscribed Subscribed
+			if err := data.Decode(&subscribed); err != nil {
+				chn <- TickerEvent{Error: err}
+			} else {
+				markets, ok := subscribed.Subscriptions[CHANNEL_TICKER]
+				if ok {
+					listener.subscriptions = []Subscription{NewSubscription(CHANNEL_TICKER, markets)}
+				} else {
+					chn <- TickerEvent{Error: ErrExpectedChannel(CHANNEL_TICKER)}
+				}
+			}
+		} else if data.Event == EVENT_TICKER {
+			var ticker Ticker
+			chn <- TickerEvent{Value: ticker, Error: data.Decode(&ticker)}
+		}
+	}
 }
 
 func (t *TickerListener) resubscriber() {

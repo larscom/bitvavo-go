@@ -3,12 +3,14 @@ package bitvavo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 )
 
 var (
 	ErrNoSubscriptions = errors.New("no subscriptions yet, start listening first")
 	ErrNoAuth          = errors.New("received auth event from server, but was not authenticated")
+	ErrExpectedChannel = func(chn Channel) error { return fmt.Errorf("expected channel '%s' in subscribed event", chn.Value) }
 )
 
 type ListenerEvent[T any] struct {
