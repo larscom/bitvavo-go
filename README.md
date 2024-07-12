@@ -55,7 +55,7 @@ func main() {
 	listener := bitvavo.NewCandlesListener()
 	defer listener.Close()
 
-	chn, err := listener.Listen([]string{"ETH-EUR"}, []bitvavo.Interval{bitvavo.INTERVAL_1M})
+	chn, err := listener.Subscribe([]string{"ETH-EUR"}, []bitvavo.Interval{bitvavo.INTERVAL_1M})
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +83,7 @@ func main() {
 	listener := bitvavo.NewOrderListener("MY_API_KEY", "MY_API_SECRET")
 	defer listener.Close()
 
-	chn, err := listener.Listen([]string{"ETH-EUR"})
+	chn, err := listener.Subscribe([]string{"ETH-EUR"})
 	if err != nil {
 		panic(err)
 	}

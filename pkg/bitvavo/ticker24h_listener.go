@@ -35,10 +35,8 @@ func NewTicker24hListener() *Ticker24hListener {
 	return l
 }
 
-// Listen for events, you 'can' call this function multiple times.
-// The same channel is returned for each function call, meaning that all channel
-// receivers get the same data.
-func (l *Ticker24hListener) Listen(markets []string) (<-chan Ticker24hEvent, error) {
+// Subscribe to markets, you can call this function multiple times, the same channel is returned.
+func (l *Ticker24hListener) Subscribe(markets []string) (<-chan Ticker24hEvent, error) {
 	subs := []Subscription{NewSubscription(l.channel, markets)}
 	if err := l.ws.Subscribe(subs); err != nil {
 		return nil, err
@@ -47,6 +45,15 @@ func (l *Ticker24hListener) Listen(markets []string) (<-chan Ticker24hEvent, err
 	go l.resubscriber()
 
 	return l.chn, nil
+}
+
+// Unsubscribe from markets.
+func (l *Ticker24hListener) Unsubscribe(markets []string) error {
+	if len(l.subscriptions) == 0 {
+		return ErrNoSubscriptions
+	}
+
+	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
 // Graceful shutdown, once you close a listener it can't be reused, you have to
@@ -73,7 +80,7 @@ func (l *Ticker24hListener) Close() error {
 func (l *Ticker24hListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- Ticker24hEvent{Error: err}
-	} else if data.Event == EVENT_SUBSCRIBED {
+	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- Ticker24hEvent{Error: err}

@@ -43,10 +43,8 @@ func NewFillListener(apiKey, apiSecret string) *FillListener {
 	return l
 }
 
-// Listen for events, you 'can' call this function multiple times.
-// The same channel is returned for each function call, meaning that all channel
-// receivers get the same data.
-func (l *FillListener) Listen(markets []string) (<-chan FillEvent, error) {
+// Subscribe to markets, you can call this function multiple times, the same channel is returned.
+func (l *FillListener) Subscribe(markets []string) (<-chan FillEvent, error) {
 	if err := l.ws.Authenticate(l.apiKey, l.apiSecret); err != nil {
 		return nil, err
 	}
@@ -59,6 +57,15 @@ func (l *FillListener) Listen(markets []string) (<-chan FillEvent, error) {
 	go l.resubscriber()
 
 	return l.chn, nil
+}
+
+// Unsubscribe from markets.
+func (l *FillListener) Unsubscribe(markets []string) error {
+	if len(l.subscriptions) == 0 {
+		return ErrNoSubscriptions
+	}
+
+	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
 // Graceful shutdown, once you close a listener it can't be reused, you have to
@@ -94,7 +101,7 @@ func (l *FillListener) onMessage(data WebSocketEventData, err error) {
 		} else {
 			l.authchn <- auth.Authenticated
 		}
-	} else if data.Event == EVENT_SUBSCRIBED {
+	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- FillEvent{Error: err}

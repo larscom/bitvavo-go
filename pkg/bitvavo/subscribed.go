@@ -8,9 +8,7 @@ import (
 
 var ErrUnexpectedType = func(v any) error { return fmt.Errorf("unexpected type '%s'", v) }
 
-type Unsubscribed struct {
-	Subscribed
-}
+type Unsubscribed = Subscribed
 
 type Subscribed struct {
 	// Currently active subscriptions that the broker knows of.

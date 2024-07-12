@@ -37,7 +37,7 @@ func main() {
 	listener := bitvavo.NewTickerListener()
 	defer listener.Close()
 
-	chn, err := listener.Listen(tradingMarkets)
+	chn, err := listener.Subscribe([]string{"ETH-EUR", "BTC-EUR"})
 	if err != nil {
 		panic(err)
 	}

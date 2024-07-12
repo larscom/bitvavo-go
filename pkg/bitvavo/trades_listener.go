@@ -35,10 +35,8 @@ func NewTradesListener() *TradesListener {
 	return l
 }
 
-// Listen for events, you 'can' call this function multiple times.
-// The same channel is returned for each function call, meaning that all channel
-// receivers get the same data.
-func (l *TradesListener) Listen(markets []string) (<-chan TradeEvent, error) {
+// Subscribe to markets, you can call this function multiple times, the same channel is returned.
+func (l *TradesListener) Subscribe(markets []string) (<-chan TradeEvent, error) {
 	if err := l.ws.Subscribe([]Subscription{NewSubscription(l.channel, markets)}); err != nil {
 		return nil, err
 	}
@@ -46,6 +44,15 @@ func (l *TradesListener) Listen(markets []string) (<-chan TradeEvent, error) {
 	go l.resubscriber()
 
 	return l.chn, nil
+}
+
+// Unsubscribe from markets.
+func (l *TradesListener) Unsubscribe(markets []string) error {
+	if len(l.subscriptions) == 0 {
+		return ErrNoSubscriptions
+	}
+
+	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
 // Graceful shutdown, once you close a listener it can't be reused, you have to
@@ -72,7 +79,7 @@ func (l *TradesListener) Close() error {
 func (l *TradesListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- TradeEvent{Error: err}
-	} else if data.Event == EVENT_SUBSCRIBED {
+	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- TradeEvent{Error: err}
