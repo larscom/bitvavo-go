@@ -7,9 +7,9 @@ import (
 
 type FillEvent ListenerEvent[Fill]
 
-type FillListener AuthListener[FillEvent]
+type FillListener authListener[FillEvent]
 
-func NewFillListener(apiKey, apiSecret string) *FillListener {
+func NewFillListener(apiKey, apiSecret string) Listener[FillEvent] {
 	chn := make(chan FillEvent)
 	rchn := make(chan struct{})
 	authchn := make(chan bool)
@@ -20,7 +20,7 @@ func NewFillListener(apiKey, apiSecret string) *FillListener {
 		apiSecret:   apiSecret,
 		authchn:     authchn,
 		pendingsubs: pendingsubs,
-		Listener: Listener[FillEvent]{
+		listener: listener[FillEvent]{
 			chn:     chn,
 			rchn:    rchn,
 			once:    new(sync.Once),
@@ -43,7 +43,6 @@ func NewFillListener(apiKey, apiSecret string) *FillListener {
 	return l
 }
 
-// Subscribe to markets, you can call this function multiple times, the same channel is returned.
 func (l *FillListener) Subscribe(markets []string) (<-chan FillEvent, error) {
 	if err := l.ws.Authenticate(l.apiKey, l.apiSecret); err != nil {
 		return nil, err
@@ -59,7 +58,6 @@ func (l *FillListener) Subscribe(markets []string) (<-chan FillEvent, error) {
 	return l.chn, nil
 }
 
-// Unsubscribe from markets.
 func (l *FillListener) Unsubscribe(markets []string) error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
@@ -68,8 +66,6 @@ func (l *FillListener) Unsubscribe(markets []string) error {
 	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
-// Graceful shutdown, once you close a listener it can't be reused, you have to
-// create a new one.
 func (l *FillListener) Close() error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions

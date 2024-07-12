@@ -7,9 +7,9 @@ import (
 
 type Ticker24hEvent ListenerEvent[Ticker24hData]
 
-type Ticker24hListener Listener[Ticker24hEvent]
+type Ticker24hListener listener[Ticker24hEvent]
 
-func NewTicker24hListener() *Ticker24hListener {
+func NewTicker24hListener() Listener[Ticker24hEvent] {
 	chn := make(chan Ticker24hEvent)
 	rchn := make(chan struct{})
 
@@ -35,7 +35,6 @@ func NewTicker24hListener() *Ticker24hListener {
 	return l
 }
 
-// Subscribe to markets, you can call this function multiple times, the same channel is returned.
 func (l *Ticker24hListener) Subscribe(markets []string) (<-chan Ticker24hEvent, error) {
 	subs := []Subscription{NewSubscription(l.channel, markets)}
 	if err := l.ws.Subscribe(subs); err != nil {
@@ -47,7 +46,6 @@ func (l *Ticker24hListener) Subscribe(markets []string) (<-chan Ticker24hEvent, 
 	return l.chn, nil
 }
 
-// Unsubscribe from markets.
 func (l *Ticker24hListener) Unsubscribe(markets []string) error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
@@ -56,8 +54,6 @@ func (l *Ticker24hListener) Unsubscribe(markets []string) error {
 	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
-// Graceful shutdown, once you close a listener it can't be reused, you have to
-// create a new one.
 func (l *Ticker24hListener) Close() error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions

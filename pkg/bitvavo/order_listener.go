@@ -7,9 +7,9 @@ import (
 
 type OrderEvent ListenerEvent[Order]
 
-type OrderListener AuthListener[OrderEvent]
+type OrderListener authListener[OrderEvent]
 
-func NewOrderListener(apiKey, apiSecret string) *OrderListener {
+func NewOrderListener(apiKey, apiSecret string) Listener[OrderEvent] {
 	chn := make(chan OrderEvent)
 	rchn := make(chan struct{})
 	authchn := make(chan bool)
@@ -20,7 +20,7 @@ func NewOrderListener(apiKey, apiSecret string) *OrderListener {
 		apiSecret:   apiSecret,
 		authchn:     authchn,
 		pendingsubs: pendingsubs,
-		Listener: Listener[OrderEvent]{
+		listener: listener[OrderEvent]{
 			chn:     chn,
 			rchn:    rchn,
 			once:    new(sync.Once),
@@ -43,7 +43,6 @@ func NewOrderListener(apiKey, apiSecret string) *OrderListener {
 	return l
 }
 
-// Subscribe to markets, you can call this function multiple times, the same channel is returned.
 func (l *OrderListener) Subscribe(markets []string) (<-chan OrderEvent, error) {
 	if err := l.ws.Authenticate(l.apiKey, l.apiSecret); err != nil {
 		return nil, err
@@ -59,7 +58,6 @@ func (l *OrderListener) Subscribe(markets []string) (<-chan OrderEvent, error) {
 	return l.chn, nil
 }
 
-// Unsubscribe from markets.
 func (l *OrderListener) Unsubscribe(markets []string) error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
@@ -68,8 +66,6 @@ func (l *OrderListener) Unsubscribe(markets []string) error {
 	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
-// Graceful shutdown, once you close a listener it can't be reused, you have to
-// create a new one.
 func (l *OrderListener) Close() error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions

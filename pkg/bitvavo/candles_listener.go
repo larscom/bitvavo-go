@@ -7,7 +7,7 @@ import (
 
 type CandleEvent ListenerEvent[Candle]
 
-type CandlesListener Listener[CandleEvent]
+type CandlesListener listener[CandleEvent]
 
 func NewCandlesListener() *CandlesListener {
 	chn := make(chan CandleEvent)
@@ -35,7 +35,7 @@ func NewCandlesListener() *CandlesListener {
 	return l
 }
 
-// Subscribe to markets, you can call this function multiple times, the same channel is returned.
+// Subscribe to markets with interval.
 func (l *CandlesListener) Subscribe(markets []string, intervals []Interval) (<-chan CandleEvent, error) {
 	if err := l.ws.Subscribe([]Subscription{NewSubscription(l.channel, markets, intervals...)}); err != nil {
 		return nil, err
@@ -55,8 +55,7 @@ func (l *CandlesListener) Unsubscribe(markets []string, intervals []Interval) er
 	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets, intervals...)})
 }
 
-// Graceful shutdown, once you close a listener it can't be reused, you have to
-// create a new one.
+// Graceful shutdown.
 func (l *CandlesListener) Close() error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions

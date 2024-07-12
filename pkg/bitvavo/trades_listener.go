@@ -7,9 +7,9 @@ import (
 
 type TradeEvent ListenerEvent[Trade]
 
-type TradesListener Listener[TradeEvent]
+type TradesListener listener[TradeEvent]
 
-func NewTradesListener() *TradesListener {
+func NewTradesListener() Listener[TradeEvent] {
 	chn := make(chan TradeEvent)
 	rchn := make(chan struct{})
 
@@ -35,7 +35,6 @@ func NewTradesListener() *TradesListener {
 	return l
 }
 
-// Subscribe to markets, you can call this function multiple times, the same channel is returned.
 func (l *TradesListener) Subscribe(markets []string) (<-chan TradeEvent, error) {
 	if err := l.ws.Subscribe([]Subscription{NewSubscription(l.channel, markets)}); err != nil {
 		return nil, err
@@ -46,7 +45,6 @@ func (l *TradesListener) Subscribe(markets []string) (<-chan TradeEvent, error) 
 	return l.chn, nil
 }
 
-// Unsubscribe from markets.
 func (l *TradesListener) Unsubscribe(markets []string) error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
@@ -55,8 +53,6 @@ func (l *TradesListener) Unsubscribe(markets []string) error {
 	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
-// Graceful shutdown, once you close a listener it can't be reused, you have to
-// create a new one.
 func (l *TradesListener) Close() error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions

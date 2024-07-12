@@ -7,9 +7,9 @@ import (
 
 type BookEvent ListenerEvent[Book]
 
-type BookListener Listener[BookEvent]
+type BookListener listener[BookEvent]
 
-func NewBookListener() *BookListener {
+func NewBookListener() Listener[BookEvent] {
 	chn := make(chan BookEvent)
 	rchn := make(chan struct{})
 
@@ -35,7 +35,6 @@ func NewBookListener() *BookListener {
 	return l
 }
 
-// Subscribe to markets, you can call this function multiple times, the same channel is returned.
 func (l *BookListener) Subscribe(markets []string) (<-chan BookEvent, error) {
 	if err := l.ws.Subscribe([]Subscription{NewSubscription(l.channel, markets)}); err != nil {
 		return nil, err
@@ -46,7 +45,6 @@ func (l *BookListener) Subscribe(markets []string) (<-chan BookEvent, error) {
 	return l.chn, nil
 }
 
-// Unsubscribe from markets.
 func (l *BookListener) Unsubscribe(markets []string) error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions
@@ -55,8 +53,6 @@ func (l *BookListener) Unsubscribe(markets []string) error {
 	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets)})
 }
 
-// Graceful shutdown, once you close a listener it can't be reused, you have to
-// create a new one.
 func (l *BookListener) Close() error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions

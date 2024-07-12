@@ -13,12 +13,33 @@ var (
 	ErrExpectedChannel = func(chn Channel) error { return fmt.Errorf("expected channel '%s' in subscribed event", chn.Value) }
 )
 
+type Listener[T any] interface {
+	Subscriber[T]
+	Unsubscriber
+	Closer
+}
+
+type Subscriber[T any] interface {
+	// Subscribe to markets
+	Subscribe(markets []string) (<-chan T, error)
+}
+
+type Unsubscriber interface {
+	// Unsubscribe from markets
+	Unsubscribe(markets []string) error
+}
+
+type Closer interface {
+	// Graceful shutdown
+	Close() error
+}
+
 type ListenerEvent[T any] struct {
 	Value T
 	Error error
 }
 
-type Listener[T any] struct {
+type listener[T any] struct {
 	ws            *WebSocket
 	chn           chan (T)
 	rchn          chan (struct{})
@@ -28,8 +49,8 @@ type Listener[T any] struct {
 	closefn       context.CancelFunc
 }
 
-type AuthListener[T any] struct {
-	Listener[T]
+type authListener[T any] struct {
+	listener[T]
 	apiKey      string
 	apiSecret   string
 	authchn     chan (bool)
