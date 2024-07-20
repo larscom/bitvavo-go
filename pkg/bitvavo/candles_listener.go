@@ -55,7 +55,7 @@ func (l *CandlesListener) Unsubscribe(markets []string, intervals []Interval) er
 	return l.ws.Unsubscribe([]Subscription{NewSubscription(l.channel, markets, intervals...)})
 }
 
-// Graceful shutdown.
+// Close everything, graceful shutdown.
 func (l *CandlesListener) Close() error {
 	if len(l.subscriptions) == 0 {
 		return ErrNoSubscriptions

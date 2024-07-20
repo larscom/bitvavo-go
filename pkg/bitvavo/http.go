@@ -117,12 +117,12 @@ func httpDo[T any](
 
 func unwrapBody[T any](response *http.Response) (T, error) {
 	var data T
-	bytes, err := io.ReadAll(response.Body)
+	b, err := io.ReadAll(response.Body)
 	if err != nil {
 		return data, err
 	}
 
-	if err := json.Unmarshal(bytes, &data); err != nil {
+	if err := json.Unmarshal(b, &data); err != nil {
 		return data, err
 	}
 
@@ -130,14 +130,14 @@ func unwrapBody[T any](response *http.Response) (T, error) {
 }
 
 func unwrapErr(response *http.Response) error {
-	bytes, err := io.ReadAll(response.Body)
+	b, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
 	}
 
 	var apiError *ApiError
-	if err := json.Unmarshal(bytes, &apiError); err != nil {
-		return ErrNOKResponse(response.StatusCode, bytes)
+	if err := json.Unmarshal(b, &apiError); err != nil {
+		return ErrNOKResponse(response.StatusCode, b)
 	}
 	return apiError
 }

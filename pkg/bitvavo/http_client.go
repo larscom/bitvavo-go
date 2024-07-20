@@ -43,7 +43,7 @@ type PublicAPI interface {
 	// available order types.
 	GetMarkets(ctx context.Context) ([]Market, error)
 
-	// GetMarkets returns the available markets with their status (trading,halted,auction) and
+	// GetMarket returns the available markets with their status (trading,halted,auction) and
 	// available order types for a single market (e.g: ETH-EUR)
 	GetMarket(ctx context.Context, market string) (Market, error)
 
@@ -103,7 +103,7 @@ type PrivateAPI interface {
 	// GetAccount returns trading volume and fees for account.
 	GetAccount(ctx context.Context) (Account, error)
 
-	// GetTrades returns historic trades for your account for market (e.g: ETH-EUR)
+	// GetTradesHistoric returns historic trades for your account for market (e.g: ETH-EUR)
 	//
 	// Optionally provide extra params (see: TradeParams)
 	GetTradesHistoric(ctx context.Context, market string, params ...Params) ([]TradeHistoric, error)

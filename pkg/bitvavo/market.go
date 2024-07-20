@@ -40,7 +40,7 @@ type Market struct {
 	// The minimum amount in base currency for valid orders.
 	MinOrderInQuoteAsset float64 `json:"minOrderInQuoteAsset"`
 
-	// // The maximum amount in quote currency (amountQuote or amount * price) for valid orders.
+	// The maximum amount in quote currency (amountQuote or amount * price) for valid orders.
 	MaxOrderInBaseAsset float64 `json:"maxOrderInBaseAsset"`
 
 	// The maximum amount in base currency for valid orders.

@@ -30,7 +30,7 @@ type Unsubscriber interface {
 }
 
 type Closer interface {
-	// Graceful shutdown
+	// Close everything, graceful shutdown.
 	Close() error
 }
 
@@ -41,8 +41,8 @@ type ListenerEvent[T any] struct {
 
 type listener[T any] struct {
 	ws            *WebSocket
-	chn           chan (T)
-	rchn          chan (struct{})
+	chn           chan T
+	rchn          chan struct{}
 	once          *sync.Once
 	channel       Channel
 	subscriptions []Subscription
@@ -53,6 +53,6 @@ type authListener[T any] struct {
 	listener[T]
 	apiKey      string
 	apiSecret   string
-	authchn     chan (bool)
-	pendingsubs chan ([]Subscription)
+	authchn     chan bool
+	pendingsubs chan []Subscription
 }

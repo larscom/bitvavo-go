@@ -83,7 +83,7 @@ type DepositHistory struct {
 	// The identifier for the account you sent amount of symbol from. For example, NL89BANK0123456789 or a digital address (e.g: 14qViLJfdGaP4EeHnDyJbEGQysnCpwk3gd).
 	Address string `json:"address"`
 
-	// The identifier for this deposit. If you did not set a ID when you made this deposit, this parameter is not included in the response.
+	// The identifier for this deposit. If you did not set an ID when you made this deposit, this parameter is not included in the response.
 	//
 	// NOTICE: digital currency only
 	PaymentId string `json:"paymentId"`

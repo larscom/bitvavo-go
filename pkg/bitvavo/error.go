@@ -6,10 +6,10 @@ import (
 	"github.com/larscom/bitvavo-go/internal/util"
 )
 
-// Complete list of errorCodes: https://docs.bitvavo.com/#tag/Error-messages
+// ApiError Complete list of errorCodes: https://docs.bitvavo.com/#tag/Error-messages
 type ApiError = WebSocketError
 
-// Complete list of errorCodes: https://docs.bitvavo.com/#tag/Error-messages
+// WebSocketError Complete list of errorCodes: https://docs.bitvavo.com/#tag/Error-messages
 type WebSocketError struct {
 	Code    int    `json:"errorCode"`
 	Message string `json:"error"`
