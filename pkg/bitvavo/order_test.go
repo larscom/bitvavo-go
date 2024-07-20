@@ -2,6 +2,7 @@ package bitvavo
 
 import (
 	"fmt"
+	"github.com/larscom/bitvavo-go/internal/test"
 	"testing"
 
 	"github.com/goccy/go-json"
@@ -35,7 +36,7 @@ func TestMaxOrderNewMarshaller(t *testing.T) {
 
 	fmt.Printf("%q", actual)
 
-	assert(t, expected, actual)
+	test.AssertEqual(t, expected, actual)
 }
 
 func TestMinOrderNewMarshaller(t *testing.T) {
@@ -55,7 +56,7 @@ func TestMinOrderNewMarshaller(t *testing.T) {
 
 	fmt.Printf("%q", actual)
 
-	assert(t, expected, actual)
+	test.AssertEqual(t, expected, actual)
 }
 
 func TestMaxOrderUpdateMarshaller(t *testing.T) {
@@ -83,7 +84,7 @@ func TestMaxOrderUpdateMarshaller(t *testing.T) {
 
 	fmt.Printf("%q", actual)
 
-	assert(t, expected, actual)
+	test.AssertEqual(t, expected, actual)
 }
 
 func TestMinOrderUpdateMarshaller(t *testing.T) {
@@ -102,5 +103,5 @@ func TestMinOrderUpdateMarshaller(t *testing.T) {
 
 	fmt.Printf("%q", actual)
 
-	assert(t, expected, actual)
+	test.AssertEqual(t, expected, actual)
 }
