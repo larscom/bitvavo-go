@@ -6,10 +6,10 @@ import (
 )
 
 func TestCreateSignature(t *testing.T) {
-	body := "{\"market\":\"ETH-EUR\",\"amount\":1.5,\"price\":2500.5 }"
+	body := "{\"market\":\"ETH-EUR\",\"amount\":1.5,\"price\":2500.5}"
 	timestamp := int64(1721452468484)
 	sig := CreateSignature("GET", "/test", []byte(body), timestamp, "API_SECRET")
-	test.AssertEqual(t, "d922f806412a560232d5326d95c389893432325f0e89f303f8ed5c9c04cc242b", sig)
+	test.AssertEqual(t, "cf9f81048eccf714305dfd0147252a38de6788ec343f4466a124ffe7c524ded8", sig)
 }
 
 func TestCreateSignatureNoBody(t *testing.T) {
