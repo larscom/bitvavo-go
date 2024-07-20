@@ -17,7 +17,7 @@ func NewTickerListener() Listener[TickerEvent] {
 		chn:     chn,
 		rchn:    rchn,
 		once:    new(sync.Once),
-		channel: CHANNEL_TICKER,
+		channel: ChannelTicker,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -75,7 +75,7 @@ func (l *TickerListener) Close() error {
 func (l *TickerListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- TickerEvent{Error: err}
-	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
+	} else if data.Event == EventSubscribed || data.Event == EventUnsubscribed {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- TickerEvent{Error: err}
@@ -87,7 +87,7 @@ func (l *TickerListener) onMessage(data WebSocketEventData, err error) {
 				l.chn <- TickerEvent{Error: ErrExpectedChannel(l.channel)}
 			}
 		}
-	} else if data.Event == EVENT_TICKER {
+	} else if data.Event == EventTicker {
 		var ticker Ticker
 		l.chn <- TickerEvent{Value: ticker, Error: data.Decode(&ticker)}
 	}

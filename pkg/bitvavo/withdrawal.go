@@ -47,17 +47,17 @@ func (w *WithdrawalHistoryParams) Params() url.Values {
 type WithdrawalHistoryStatus enum.Member[string]
 
 var (
-	withDrawalHistoryStatus             = enum.NewBuilder[string, WithdrawalHistoryStatus]()
-	WITHDRAWAL_HISTORY_STATUS_AP        = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"awaiting_processing"})
-	WITHDRAWAL_HISTORY_STATUS_AEC       = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"awaiting_email_confirmation"})
-	WITHDRAWAL_HISTORY_STATUS_ABI       = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"awaiting_bitvavo_inspection"})
-	WITHDRAWAL_HISTORY_STATUS_APPROVED  = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"approved"})
-	WITHDRAWAL_HISTORY_STATUS_SENDING   = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"sending"})
-	WITHDRAWAL_HISTORY_STATUS_IM        = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"in_mempool"})
-	WITHDRAWAL_HISTORY_STATUS_PROCESSED = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"processed"})
-	WITHDRAWAL_HISTORY_STATUS_COMPLETED = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"completed"})
-	WITHDRAWAL_HISTORY_STATUS_CANCELED  = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"canceled"})
-	withDrawalHistoryStatuses           = withDrawalHistoryStatus.Enum()
+	withDrawalHistoryStatus          = enum.NewBuilder[string, WithdrawalHistoryStatus]()
+	WithdrawalHistoryStatusAp        = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"awaiting_processing"})
+	WithdrawalHistoryStatusAec       = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"awaiting_email_confirmation"})
+	WithdrawalHistoryStatusAbi       = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"awaiting_bitvavo_inspection"})
+	WithdrawalHistoryStatusApproved  = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"approved"})
+	WithdrawalHistoryStatusSending   = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"sending"})
+	WithdrawalHistoryStatusIm        = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"in_mempool"})
+	WithdrawalHistoryStatusProcessed = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"processed"})
+	WithdrawalHistoryStatusCompleted = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"completed"})
+	WithdrawalHistoryStatusCanceled  = withDrawalHistoryStatus.Add(WithdrawalHistoryStatus{"canceled"})
+	withDrawalHistoryStatuses        = withDrawalHistoryStatus.Enum()
 )
 
 type WithdrawalHistory struct {

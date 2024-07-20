@@ -26,7 +26,7 @@ func main() {
 
 	tradingMarkets := make([]string, 0)
 	for _, market := range markets {
-		if market.Status == bitvavo.MARKET_STATUS_TRADING {
+		if market.Status == bitvavo.MarketStatusTrading {
 			tradingMarkets = append(tradingMarkets, market.Market)
 		}
 	}

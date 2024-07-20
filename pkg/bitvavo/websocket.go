@@ -40,18 +40,18 @@ type message struct {
 type WebSocketEvent enum.Member[string]
 
 var (
-	webSocketEvent     = enum.NewBuilder[string, WebSocketEvent]()
-	EVENT_SUBSCRIBED   = webSocketEvent.Add(WebSocketEvent{"subscribed"})
-	EVENT_UNSUBSCRIBED = webSocketEvent.Add(WebSocketEvent{"unsubscribed"})
-	EVENT_CANDLE       = webSocketEvent.Add(WebSocketEvent{"candle"})
-	EVENT_TICKER       = webSocketEvent.Add(WebSocketEvent{"ticker"})
-	EVENT_TICKER24H    = webSocketEvent.Add(WebSocketEvent{"ticker24h"})
-	EVENT_TRADE        = webSocketEvent.Add(WebSocketEvent{"trade"})
-	EVENT_BOOK         = webSocketEvent.Add(WebSocketEvent{"book"})
-	EVENT_AUTHENTICATE = webSocketEvent.Add(WebSocketEvent{"authenticate"})
-	EVENT_ORDER        = webSocketEvent.Add(WebSocketEvent{"order"})
-	EVENT_FILL         = webSocketEvent.Add(WebSocketEvent{"fill"})
-	webSocketEvents    = webSocketEvent.Enum()
+	webSocketEvent    = enum.NewBuilder[string, WebSocketEvent]()
+	EventSubscribed   = webSocketEvent.Add(WebSocketEvent{"subscribed"})
+	EventUnsubscribed = webSocketEvent.Add(WebSocketEvent{"unsubscribed"})
+	EventCandle       = webSocketEvent.Add(WebSocketEvent{"candle"})
+	EventTicker       = webSocketEvent.Add(WebSocketEvent{"ticker"})
+	EventTicker24h    = webSocketEvent.Add(WebSocketEvent{"ticker24h"})
+	EventTrade        = webSocketEvent.Add(WebSocketEvent{"trade"})
+	EventBook         = webSocketEvent.Add(WebSocketEvent{"book"})
+	EventAuthenticate = webSocketEvent.Add(WebSocketEvent{"authenticate"})
+	EventOrder        = webSocketEvent.Add(WebSocketEvent{"order"})
+	EventFill         = webSocketEvent.Add(WebSocketEvent{"fill"})
+	webSocketEvents   = webSocketEvent.Enum()
 )
 
 type WebSocketEventData struct {

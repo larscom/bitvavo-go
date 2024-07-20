@@ -53,77 +53,77 @@ func (o *OrderParams) Params() url.Values {
 type OrderStatus enum.Member[string]
 
 var (
-	orderStatus                   = enum.NewBuilder[string, OrderStatus]()
-	ORDER_STATUS_NEW              = orderStatus.Add(OrderStatus{"new"})
-	ORDER_STATUS_AWAITING_TRIGGER = orderStatus.Add(OrderStatus{"awaitingTrigger"})
-	ORDER_STATUS_CANCELED         = orderStatus.Add(OrderStatus{"canceled"})
-	ORDER_STATUS_CANCELED_AUCTION = orderStatus.Add(OrderStatus{"canceledAuction"})
-	ORDER_STATUS_CANCELED_STP     = orderStatus.Add(OrderStatus{"canceledSelfTradePrevention"})
-	ORDER_STATUS_CANCELED_IOC     = orderStatus.Add(OrderStatus{"canceledIOC"})
-	ORDER_STATUS_CANCELED_FOK     = orderStatus.Add(OrderStatus{"canceledFOK"})
-	ORDER_STATUS_CANCELED_MP      = orderStatus.Add(OrderStatus{"canceledMarketProtection"})
-	ORDER_STATUS_CANCELED_PO      = orderStatus.Add(OrderStatus{"canceledPostOnly"})
-	ORDER_STATUS_FILLED           = orderStatus.Add(OrderStatus{"filled"})
-	ORDER_STATUS_PARTIALLY_FILLED = orderStatus.Add(OrderStatus{"partiallyFilled"})
-	ORDER_STATUS_EXPIRED          = orderStatus.Add(OrderStatus{"expired"})
-	ORDER_STATUS_REJECTED         = orderStatus.Add(OrderStatus{"rejected"})
-	orderStatuses                 = orderStatus.Enum()
+	orderStatus                = enum.NewBuilder[string, OrderStatus]()
+	OrderStatusNew             = orderStatus.Add(OrderStatus{"new"})
+	OrderStatusAwaitingTrigger = orderStatus.Add(OrderStatus{"awaitingTrigger"})
+	OrderStatusCanceled        = orderStatus.Add(OrderStatus{"canceled"})
+	OrderStatusCanceledAuction = orderStatus.Add(OrderStatus{"canceledAuction"})
+	OrderStatusCanceledStp     = orderStatus.Add(OrderStatus{"canceledSelfTradePrevention"})
+	OrderStatusCanceledIoc     = orderStatus.Add(OrderStatus{"canceledIOC"})
+	OrderStatusCanceledFok     = orderStatus.Add(OrderStatus{"canceledFOK"})
+	OrderStatusCanceledMp      = orderStatus.Add(OrderStatus{"canceledMarketProtection"})
+	OrderStatusCanceledPo      = orderStatus.Add(OrderStatus{"canceledPostOnly"})
+	OrderStatusFilled          = orderStatus.Add(OrderStatus{"filled"})
+	OrderStatusPartiallyFilled = orderStatus.Add(OrderStatus{"partiallyFilled"})
+	OrderStatusExpired         = orderStatus.Add(OrderStatus{"expired"})
+	OrderStatusRejected        = orderStatus.Add(OrderStatus{"rejected"})
+	orderStatuses              = orderStatus.Enum()
 )
 
 type OrderType enum.Member[string]
 
 var (
-	orderType                    = enum.NewBuilder[string, OrderType]()
-	ORDER_TYPE_MARKET            = orderType.Add(OrderType{"market"})
-	ORDER_TYPE_LIMIT             = orderType.Add(OrderType{"limit"})
-	ORDER_TYPE_STOP_LOSS         = orderType.Add(OrderType{"stopLoss"})
-	ORDER_TYPE_STOP_LOSS_LIMIT   = orderType.Add(OrderType{"stopLossLimit"})
-	ORDER_TYPE_TAKE_PROFIT       = orderType.Add(OrderType{"takeProfit"})
-	ORDER_TYPE_TAKE_PROFIT_LIMIT = orderType.Add(OrderType{"takeProfitLimit"})
-	orderTypes                   = orderType.Enum()
+	orderType                = enum.NewBuilder[string, OrderType]()
+	OrderTypeMarket          = orderType.Add(OrderType{"market"})
+	OrderTypeLimit           = orderType.Add(OrderType{"limit"})
+	OrderTypeStopLoss        = orderType.Add(OrderType{"stopLoss"})
+	OrderTypeStopLossLimit   = orderType.Add(OrderType{"stopLossLimit"})
+	OrderTypeTakeProfit      = orderType.Add(OrderType{"takeProfit"})
+	OrderTypeTakeProfitLimit = orderType.Add(OrderType{"takeProfitLimit"})
+	orderTypes               = orderType.Enum()
 )
 
 type OrderTriggerType enum.Member[string]
 
 var (
-	orderTriggerType           = enum.NewBuilder[string, OrderTriggerType]()
-	ORDER_TRIGGER_TYPE_DEFAULT = ORDER_TRIGGER_TYPE_PRICE
-	ORDER_TRIGGER_TYPE_PRICE   = orderTriggerType.Add(OrderTriggerType{"price"})
-	orderTriggerTypes          = orderTriggerType.Enum()
+	orderTriggerType        = enum.NewBuilder[string, OrderTriggerType]()
+	OrderTriggerTypeDefault = OrderTriggerTypePrice
+	OrderTriggerTypePrice   = orderTriggerType.Add(OrderTriggerType{"price"})
+	orderTriggerTypes       = orderTriggerType.Enum()
 )
 
 type OrderTriggerRef enum.Member[string]
 
 var (
-	orderTriggerRef              = enum.NewBuilder[string, OrderTriggerRef]()
-	ORDER_TRIGGER_REF_LAST_TRADE = orderTriggerRef.Add(OrderTriggerRef{"lastTrade"})
-	ORDER_TRIGGER_REF_BEST_BID   = orderTriggerRef.Add(OrderTriggerRef{"bestBid"})
-	ORDER_TRIGGER_REF_BEST_ASK   = orderTriggerRef.Add(OrderTriggerRef{"bestAsk"})
-	ORDER_TRIGGER_REF_MID_PRICE  = orderTriggerRef.Add(OrderTriggerRef{"midPrice"})
-	orderTriggerRefs             = orderTriggerRef.Enum()
+	orderTriggerRef          = enum.NewBuilder[string, OrderTriggerRef]()
+	OrderTriggerRefLastTrade = orderTriggerRef.Add(OrderTriggerRef{"lastTrade"})
+	OrderTriggerRefBestBid   = orderTriggerRef.Add(OrderTriggerRef{"bestBid"})
+	OrderTriggerRefBestAsk   = orderTriggerRef.Add(OrderTriggerRef{"bestAsk"})
+	OrderTriggerRefMidPrice  = orderTriggerRef.Add(OrderTriggerRef{"midPrice"})
+	orderTriggerRefs         = orderTriggerRef.Enum()
 )
 
 type TimeInForce enum.Member[string]
 
 var (
-	timeInForce           = enum.NewBuilder[string, TimeInForce]()
-	TIME_IN_FORCE_DEFAULT = TIME_IN_FORCE_GTC
-	TIME_IN_FORCE_GTC     = timeInForce.Add(TimeInForce{"GTC"})
-	TIME_IN_FORCE_IOC     = timeInForce.Add(TimeInForce{"IOC"})
-	TIME_IN_FORCE_FOK     = timeInForce.Add(TimeInForce{"FOK"})
-	timeInForces          = timeInForce.Enum()
+	timeInForce        = enum.NewBuilder[string, TimeInForce]()
+	TimeInForceDefault = TimeInForceGtc
+	TimeInForceGtc     = timeInForce.Add(TimeInForce{"GTC"})
+	TimeInForceIoc     = timeInForce.Add(TimeInForce{"IOC"})
+	TimeInForceFok     = timeInForce.Add(TimeInForce{"FOK"})
+	timeInForces       = timeInForce.Enum()
 )
 
 type SelfTradePrevention enum.Member[string]
 
 var (
-	selfTradePrevention           = enum.NewBuilder[string, SelfTradePrevention]()
-	SELF_TRADE_PREVENTION_DEFAULT = SELF_TRADE_PREVENTION_DAC
-	SELF_TRADE_PREVENTION_DAC     = selfTradePrevention.Add(SelfTradePrevention{"decrementAndCancel"})
-	SELF_TRADE_PREVENTION_CO      = selfTradePrevention.Add(SelfTradePrevention{"cancelOldest"})
-	SELF_TRADE_PREVENTION_CN      = selfTradePrevention.Add(SelfTradePrevention{"cancelNewest"})
-	SELF_TRADE_PREVENTION_CB      = selfTradePrevention.Add(SelfTradePrevention{"cancelBoth"})
-	selfTradePreventions          = selfTradePrevention.Enum()
+	selfTradePrevention        = enum.NewBuilder[string, SelfTradePrevention]()
+	SelfTradePreventionDefault = SelfTradePreventionDac
+	SelfTradePreventionDac     = selfTradePrevention.Add(SelfTradePrevention{"decrementAndCancel"})
+	SelfTradePreventionCo      = selfTradePrevention.Add(SelfTradePrevention{"cancelOldest"})
+	SelfTradePreventionCn      = selfTradePrevention.Add(SelfTradePrevention{"cancelNewest"})
+	SelfTradePreventionCb      = selfTradePrevention.Add(SelfTradePrevention{"cancelBoth"})
+	selfTradePreventions       = selfTradePrevention.Enum()
 )
 
 type Order struct {

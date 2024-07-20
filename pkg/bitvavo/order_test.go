@@ -10,16 +10,16 @@ import (
 func TestMaxOrderNewMarshaller(t *testing.T) {
 	order := OrderNew{
 		Market:                  "ETH-EUR",
-		Side:                    SIDE_BUY,
-		OrderType:               ORDER_TYPE_LIMIT,
+		Side:                    SideBuy,
+		OrderType:               OrderTypeLimit,
 		Amount:                  1.5,
 		Price:                   2500.50,
 		AmountQuote:             105.5,
 		TriggerAmount:           10.2,
-		TriggerType:             ORDER_TRIGGER_TYPE_DEFAULT,
-		TriggerReference:        ORDER_TRIGGER_REF_BEST_ASK,
-		TimeInForce:             TIME_IN_FORCE_DEFAULT,
-		SelfTradePrevention:     SELF_TRADE_PREVENTION_DEFAULT,
+		TriggerType:             OrderTriggerTypeDefault,
+		TriggerReference:        OrderTriggerRefBestAsk,
+		TimeInForce:             TimeInForceDefault,
+		SelfTradePrevention:     SelfTradePreventionDefault,
 		PostOnly:                true,
 		DisableMarketProtection: false,
 		ResponseRequired:        true,
@@ -41,8 +41,8 @@ func TestMaxOrderNewMarshaller(t *testing.T) {
 func TestMinOrderNewMarshaller(t *testing.T) {
 	order := OrderNew{
 		Market:    "ETH-EUR",
-		Side:      SIDE_BUY,
-		OrderType: ORDER_TYPE_LIMIT,
+		Side:      SideBuy,
+		OrderType: OrderTypeLimit,
 	}
 
 	bytes, err := json.Marshal(order)
@@ -67,8 +67,8 @@ func TestMaxOrderUpdateMarshaller(t *testing.T) {
 		AmountRemaining:     10.5,
 		Price:               2500.50,
 		TriggerAmount:       10.2,
-		TimeInForce:         TIME_IN_FORCE_DEFAULT,
-		SelfTradePrevention: SELF_TRADE_PREVENTION_DEFAULT,
+		TimeInForce:         TimeInForceDefault,
+		SelfTradePrevention: SelfTradePreventionDefault,
 		PostOnly:            true,
 		ResponseRequired:    true,
 	}

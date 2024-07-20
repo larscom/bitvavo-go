@@ -17,7 +17,7 @@ func NewBookListener() Listener[BookEvent] {
 		chn:     chn,
 		rchn:    rchn,
 		once:    new(sync.Once),
-		channel: CHANNEL_BOOK,
+		channel: ChannelBook,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -75,7 +75,7 @@ func (l *BookListener) Close() error {
 func (l *BookListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- BookEvent{Error: err}
-	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
+	} else if data.Event == EventSubscribed || data.Event == EventUnsubscribed {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- BookEvent{Error: err}
@@ -87,7 +87,7 @@ func (l *BookListener) onMessage(data WebSocketEventData, err error) {
 				l.chn <- BookEvent{Error: ErrExpectedChannel(l.channel)}
 			}
 		}
-	} else if data.Event == EVENT_BOOK {
+	} else if data.Event == EventBook {
 		var book Book
 		l.chn <- BookEvent{Value: book, Error: data.Decode(&book)}
 	}

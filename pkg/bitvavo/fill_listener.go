@@ -24,7 +24,7 @@ func NewFillListener(apiKey, apiSecret string) Listener[FillEvent] {
 			chn:     chn,
 			rchn:    rchn,
 			once:    new(sync.Once),
-			channel: CHANNEL_ACCOUNT,
+			channel: ChannelAccount,
 		},
 	}
 
@@ -90,14 +90,14 @@ func (l *FillListener) Close() error {
 func (l *FillListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- FillEvent{Error: err}
-	} else if data.Event == EVENT_AUTHENTICATE {
+	} else if data.Event == EventAuthenticate {
 		var auth Authenticate
 		if err := data.Decode(&auth); err != nil {
 			l.chn <- FillEvent{Error: err}
 		} else {
 			l.authchn <- auth.Authenticated
 		}
-	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
+	} else if data.Event == EventSubscribed || data.Event == EventUnsubscribed {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- FillEvent{Error: err}
@@ -109,7 +109,7 @@ func (l *FillListener) onMessage(data WebSocketEventData, err error) {
 				l.chn <- FillEvent{Error: ErrExpectedChannel(l.channel)}
 			}
 		}
-	} else if data.Event == EVENT_FILL {
+	} else if data.Event == EventFill {
 		var fill Fill
 		l.chn <- FillEvent{Value: fill, Error: data.Decode(&fill)}
 	}

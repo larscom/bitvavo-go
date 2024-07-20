@@ -7,30 +7,30 @@ import (
 type Channel enum.Member[string]
 
 var (
-	channel           = enum.NewBuilder[string, Channel]()
-	CHANNEL_ACCOUNT   = channel.Add(Channel{"account"})
-	CHANNEL_BOOK      = channel.Add(Channel{"book"})
-	CHANNEL_CANDLES   = channel.Add(Channel{"candles"})
-	CHANNEL_TRADES    = channel.Add(Channel{"trades"})
-	CHANNEL_TICKER    = channel.Add(Channel{"ticker"})
-	CHANNEL_TICKER24H = channel.Add(Channel{"ticker24h"})
-	channels          = channel.Enum()
+	channel          = enum.NewBuilder[string, Channel]()
+	ChannelAccount   = channel.Add(Channel{"account"})
+	ChannelBook      = channel.Add(Channel{"book"})
+	ChannelCandles   = channel.Add(Channel{"candles"})
+	ChannelTrades    = channel.Add(Channel{"trades"})
+	ChannelTicker    = channel.Add(Channel{"ticker"})
+	ChannelTicker24h = channel.Add(Channel{"ticker24h"})
+	channels         = channel.Enum()
 )
 
 type Interval enum.Member[string]
 
 var (
-	interval     = enum.NewBuilder[string, Interval]()
-	INTERVAL_1M  = interval.Add(Interval{"1m"})
-	INTERVAL_5M  = interval.Add(Interval{"5m"})
-	INTERVAL_15M = interval.Add(Interval{"15m"})
-	INTERVAL_30M = interval.Add(Interval{"30m"})
-	INTERVAL_1H  = interval.Add(Interval{"1h"})
-	INTERVAL_2H  = interval.Add(Interval{"2h"})
-	INTERVAL_4H  = interval.Add(Interval{"4h"})
-	INTERVAL_6H  = interval.Add(Interval{"6h"})
-	INTERVAL_8H  = interval.Add(Interval{"8h"})
-	intervals    = interval.Enum()
+	interval    = enum.NewBuilder[string, Interval]()
+	Interval1m  = interval.Add(Interval{"1m"})
+	Interval5m  = interval.Add(Interval{"5m"})
+	Interval15m = interval.Add(Interval{"15m"})
+	Interval30m = interval.Add(Interval{"30m"})
+	Interval1h  = interval.Add(Interval{"1h"})
+	Interval2h  = interval.Add(Interval{"2h"})
+	Interval4h  = interval.Add(Interval{"4h"})
+	Interval6h  = interval.Add(Interval{"6h"})
+	Interval8h  = interval.Add(Interval{"8h"})
+	intervals   = interval.Enum()
 )
 
 type Subscription struct {
@@ -40,7 +40,7 @@ type Subscription struct {
 }
 
 func NewSubscription(channel Channel, markets []string, intervals ...Interval) Subscription {
-	if channel == CHANNEL_CANDLES && len(intervals) == 0 {
+	if channel == ChannelCandles && len(intervals) == 0 {
 		panic("must provide at least one interval for candles channel")
 	}
 	return Subscription{

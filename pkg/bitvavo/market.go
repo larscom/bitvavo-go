@@ -9,11 +9,11 @@ import (
 type MarketStatus enum.Member[string]
 
 var (
-	marketStatus          = enum.NewBuilder[string, MarketStatus]()
-	MARKET_STATUS_TRADING = marketStatus.Add(MarketStatus{"trading"})
-	MARKET_STATUS_HALTED  = marketStatus.Add(MarketStatus{"halted"})
-	MARKET_STATUS_AUCTION = marketStatus.Add(MarketStatus{"auction"})
-	marketStatuses        = marketStatus.Enum()
+	marketStatus        = enum.NewBuilder[string, MarketStatus]()
+	MarketStatusTrading = marketStatus.Add(MarketStatus{"trading"})
+	MarketStatusHalted  = marketStatus.Add(MarketStatus{"halted"})
+	MarketStatusAuction = marketStatus.Add(MarketStatus{"auction"})
+	marketStatuses      = marketStatus.Enum()
 )
 
 type Market struct {

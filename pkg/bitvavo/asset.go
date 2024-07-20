@@ -9,21 +9,21 @@ import (
 type DepositStatus enum.Member[string]
 
 var (
-	depositStatus          = enum.NewBuilder[string, DepositStatus]()
-	DEPOSIT_STATUS_TRADING = depositStatus.Add(DepositStatus{"OK"})
-	DEPOSIT_STATUS_HALTED  = depositStatus.Add(DepositStatus{"MAINTENANCE"})
-	DEPOSIT_STATUS_AUCTION = depositStatus.Add(DepositStatus{"DELISTED"})
-	depositStatuses        = depositStatus.Enum()
+	depositStatus        = enum.NewBuilder[string, DepositStatus]()
+	DepositStatusTrading = depositStatus.Add(DepositStatus{"OK"})
+	DepositStatusHalted  = depositStatus.Add(DepositStatus{"MAINTENANCE"})
+	DepositStatusAuction = depositStatus.Add(DepositStatus{"DELISTED"})
+	depositStatuses      = depositStatus.Enum()
 )
 
 type WithdrawalStatus enum.Member[string]
 
 var (
-	withdrawalStatus          = enum.NewBuilder[string, WithdrawalStatus]()
-	WITHDRAWAL_STATUS_TRADING = withdrawalStatus.Add(WithdrawalStatus{"OK"})
-	WITHDRAWAL_STATUS_HALTED  = withdrawalStatus.Add(WithdrawalStatus{"MAINTENANCE"})
-	WITHDRAWAL_STATUS_AUCTION = withdrawalStatus.Add(WithdrawalStatus{"DELISTED"})
-	withdrawalStatuses        = withdrawalStatus.Enum()
+	withdrawalStatus        = enum.NewBuilder[string, WithdrawalStatus]()
+	WithdrawalStatusTrading = withdrawalStatus.Add(WithdrawalStatus{"OK"})
+	WithdrawalStatusHalted  = withdrawalStatus.Add(WithdrawalStatus{"MAINTENANCE"})
+	WithdrawalStatusAuction = withdrawalStatus.Add(WithdrawalStatus{"DELISTED"})
+	withdrawalStatuses      = withdrawalStatus.Enum()
 )
 
 type Asset struct {

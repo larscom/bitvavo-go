@@ -17,7 +17,7 @@ func NewTicker24hListener() Listener[Ticker24hEvent] {
 		chn:     chn,
 		rchn:    rchn,
 		once:    new(sync.Once),
-		channel: CHANNEL_TICKER24H,
+		channel: ChannelTicker24h,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -76,7 +76,7 @@ func (l *Ticker24hListener) Close() error {
 func (l *Ticker24hListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- Ticker24hEvent{Error: err}
-	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
+	} else if data.Event == EventSubscribed || data.Event == EventUnsubscribed {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- Ticker24hEvent{Error: err}
@@ -88,7 +88,7 @@ func (l *Ticker24hListener) onMessage(data WebSocketEventData, err error) {
 				l.chn <- Ticker24hEvent{Error: ErrExpectedChannel(l.channel)}
 			}
 		}
-	} else if data.Event == EVENT_TICKER24H {
+	} else if data.Event == EventTicker24h {
 		var ticker24h Ticker24h
 		if err := data.Decode(&ticker24h); err != nil {
 			l.chn <- Ticker24hEvent{Error: err}

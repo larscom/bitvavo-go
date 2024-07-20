@@ -48,6 +48,8 @@ For each event on the Bitvavo platform there is a listener available. A listener
 - TradesListener
 
 ```go
+package main
+
 import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {
@@ -55,7 +57,7 @@ func main() {
 	listener := bitvavo.NewCandlesListener()
 	defer listener.Close()
 
-	chn, err := listener.Subscribe([]string{"ETH-EUR"}, []bitvavo.Interval{bitvavo.INTERVAL_1M})
+	chn, err := listener.Subscribe([]string{"ETH-EUR"}, []bitvavo.Interval{bitvavo.Interval1m})
 	if err != nil {
 		panic(err)
 	}
@@ -76,6 +78,8 @@ func main() {
 - FillListener
 
 ```go
+package main
+
 import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {
@@ -103,17 +107,19 @@ func main() {
 It's possible to create your own wrapper arround the websocket and listen to multiple events at the same time.
 
 ```go
+package main
+
 import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {
 	onMessage := func(data bitvavo.WebSocketEventData, err error) {
 			if err != nil {
 				// oh no error!
-			} else if data.Event == bitvavo.EVENT_BOOK {
+			} else if data.Event == bitvavo.EventBook {
 				// decode into Book
 				var book bitvavo.Book
 				data.Decode(&book)
-			} else if data.Event == bitvavo.EVENT_CANDLE {
+			} else if data.Event == bitvavo.EventCandle {
 				// decode into Candle
 				var candle bitvavo.Candle
 				data.Decode(&candle)
@@ -139,6 +145,8 @@ If you need both private and public endpoints you can create a private http clie
 ### Private and Public endpoints
 
 ```go
+package main
+
 import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {
@@ -157,6 +165,8 @@ func main() {
 ### Public endpoints only
 
 ```go
+package main
+
 import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {
@@ -177,6 +187,8 @@ func main() {
 Some endpoints have additional params which you can provide.
 
 ```go
+package main
+
 import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {

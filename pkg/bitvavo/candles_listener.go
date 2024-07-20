@@ -17,7 +17,7 @@ func NewCandlesListener() *CandlesListener {
 		chn:     chn,
 		rchn:    rchn,
 		once:    new(sync.Once),
-		channel: CHANNEL_CANDLES,
+		channel: ChannelCandles,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -78,7 +78,7 @@ func (l *CandlesListener) Close() error {
 func (l *CandlesListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- CandleEvent{Error: err}
-	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
+	} else if data.Event == EventSubscribed || data.Event == EventUnsubscribed {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- CandleEvent{Error: err}
@@ -96,7 +96,7 @@ func (l *CandlesListener) onMessage(data WebSocketEventData, err error) {
 				l.chn <- CandleEvent{Error: ErrExpectedChannel(l.channel)}
 			}
 		}
-	} else if data.Event == EVENT_CANDLE {
+	} else if data.Event == EventCandle {
 		var candle Candle
 		l.chn <- CandleEvent{Value: candle, Error: data.Decode(&candle)}
 	}

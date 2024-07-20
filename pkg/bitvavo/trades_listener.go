@@ -17,7 +17,7 @@ func NewTradesListener() Listener[TradeEvent] {
 		chn:     chn,
 		rchn:    rchn,
 		once:    new(sync.Once),
-		channel: CHANNEL_TRADES,
+		channel: ChannelTrades,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -75,7 +75,7 @@ func (l *TradesListener) Close() error {
 func (l *TradesListener) onMessage(data WebSocketEventData, err error) {
 	if err != nil {
 		l.chn <- TradeEvent{Error: err}
-	} else if data.Event == EVENT_SUBSCRIBED || data.Event == EVENT_UNSUBSCRIBED {
+	} else if data.Event == EventSubscribed || data.Event == EventUnsubscribed {
 		var subscribed Subscribed
 		if err := data.Decode(&subscribed); err != nil {
 			l.chn <- TradeEvent{Error: err}
@@ -87,7 +87,7 @@ func (l *TradesListener) onMessage(data WebSocketEventData, err error) {
 				l.chn <- TradeEvent{Error: ErrExpectedChannel(l.channel)}
 			}
 		}
-	} else if data.Event == EVENT_TRADE {
+	} else if data.Event == EventTrade {
 		var trade Trade
 		l.chn <- TradeEvent{Value: trade, Error: data.Decode(&trade)}
 	}
