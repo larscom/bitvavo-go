@@ -13,22 +13,22 @@ type Ticker24hData struct {
 	// The market which was requested in the subscription.
 	Market string `json:"market"`
 
-	// The open price of the 24 hour period.
+	// The open price of the 24-hour period.
 	Open float64 `json:"open"`
 
-	// The highest price for which a trade occurred in the 24 hour period.
+	// The highest price for which a trade occurred in the 24-hour period.
 	High float64 `json:"high"`
 
-	// The lowest price for which a trade occurred in the 24 hour period.
+	// The lowest price for which a trade occurred in the 24-hour period.
 	Low float64 `json:"low"`
 
-	// The last price for which a trade occurred in the 24 hour period.
+	// The last price for which a trade occurred in the 24-hour period.
 	Last float64 `json:"last"`
 
-	// The total volume of the 24 hour period in base currency.
+	// The total volume of the 24-hour period in base currency.
 	Volume float64 `json:"volume"`
 
-	// The total volume of the 24 hour period in quote currency.
+	// The total volume of the 24-hour period in quote currency.
 	VolumeQuote float64 `json:"volumeQuote"`
 
 	// The best (highest) bid offer at the current moment.
