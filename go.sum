@@ -8,3 +8,5 @@ github.com/orsinium-labs/enum v1.4.0 h1:3NInlfV76kuAg0kq2FFUondmg3WO7gMEgrPPrlzL
 github.com/orsinium-labs/enum v1.4.0/go.mod h1:Qj5IK2pnElZtkZbGDxZMjpt7SUsn4tqE5vRelmWaBbc=
 nhooyr.io/websocket v1.8.11 h1:f/qXNc2/3DpoSZkHt1DQu6rj4zGC8JmkkLkWss0MgN0=
 nhooyr.io/websocket v1.8.11/go.mod h1:rN9OFWIUwuxg4fR5tELlYC04bXYowCP9GX47ivo2l+c=
+nhooyr.io/websocket v1.8.17 h1:KEVeLJkUywCKVsnLIDlD/5gtayKp8VoCkksHCGGfT9Y=
+nhooyr.io/websocket v1.8.17/go.mod h1:rN9OFWIUwuxg4fR5tELlYC04bXYowCP9GX47ivo2l+c=
