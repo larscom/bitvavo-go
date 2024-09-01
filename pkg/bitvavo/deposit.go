@@ -78,7 +78,7 @@ type DepositHistory struct {
 	Symbol string `json:"symbol"`
 
 	// The quantity of symbol you deposited with Bitvavo.
-	Amount float64 `json:"amount"`
+	Amount string `json:"amount"`
 
 	// The identifier for the account you sent amount of symbol from. For example, NL89BANK0123456789 or a digital address (e.g: 14qViLJfdGaP4EeHnDyJbEGQysnCpwk3gd).
 	Address string `json:"address"`
@@ -94,7 +94,7 @@ type DepositHistory struct {
 	TxId string `json:"txId"`
 
 	// The transaction fee you paid to deposit amount of symbol on Bitvavo.
-	Fee float64 `json:"fee"`
+	Fee string `json:"fee"`
 
 	// The current state of this deposit. Possible values are:
 	// completed - amount of symbol has been added to your balance on Bitvavo.
@@ -124,11 +124,11 @@ func (d *DepositHistory) UnmarshalJSON(bytes []byte) error {
 
 	d.Timestamp = int64(timestamp)
 	d.Symbol = symbol
-	d.Amount = util.IfOrElse(len(amount) > 0, func() float64 { return util.MustFloat64(amount) }, 0)
+	d.Amount = amount
 	d.Address = address
 	d.PaymentId = paymentId
 	d.TxId = txId
-	d.Fee = util.IfOrElse(len(fee) > 0, func() float64 { return util.MustFloat64(fee) }, 0)
+	d.Fee = fee
 	d.Status = status
 
 	return nil

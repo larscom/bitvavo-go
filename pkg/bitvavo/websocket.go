@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
 	"time"
 
 	"github.com/goccy/go-json"
@@ -15,19 +16,19 @@ import (
 	"github.com/orsinium-labs/enum"
 )
 
-const bitvavoWSURL = "wss://ws.bitvavo.com/v2"
+const websocketURL = "wss://ws.bitvavo.com/v2"
 
 var ErrNotEventType = errors.New("not an event type")
 
-type chn struct {
+type channelOut struct {
 	Name      string   `json:"name"`
 	Intervals []string `json:"interval,omitempty"`
 	Markets   []string `json:"markets,omitempty"`
 }
 
-type message struct {
-	Action   string `json:"action"`
-	Channels []chn  `json:"channels,omitempty"`
+type messageOut struct {
+	Action   string       `json:"action"`
+	Channels []channelOut `json:"channels,omitempty"`
 
 	// Api Key.
 	Key string `json:"key,omitempty"`
@@ -81,38 +82,82 @@ func (d *WebSocketEventData) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type WebSocketOption func(*WebSocket)
+
 type WebSocket struct {
-	socket *socket.Socket
+	socket     *socket.Socket
+	printer    DebugPrinter
+	httpClient *http.Client
 }
 
-func NewWebSocket(ctx context.Context, sendMessage func(WebSocketEventData, error), reconnFunc func()) (*WebSocket, error) {
+func WithWebSocketHttpClient(client *http.Client) WebSocketOption {
+	return func(ws *WebSocket) {
+		ws.httpClient = client
+	}
+}
+
+func WithWebSocketDebugPrinter(printer DebugPrinter) WebSocketOption {
+	return func(ws *WebSocket) {
+		ws.printer = printer
+	}
+}
+
+func WithWebSocketDefaultDebugPrinter() WebSocketOption {
+	return func(ws *WebSocket) {
+		ws.printer = NewDefaultDebugPrinter()
+	}
+}
+
+func NewWebSocket(
+	ctx context.Context,
+	messageFunc func(WebSocketEventData, error),
+	reconnectFunc func(),
+	options ...WebSocketOption,
+) (*WebSocket, error) {
+	ws := new(WebSocket)
+	ws.httpClient = http.DefaultClient
+
+	for _, opt := range options {
+		opt(ws)
+	}
+
 	onMessage := func(bytes []byte) {
 		var data WebSocketEventData
 		if err := json.Unmarshal(bytes, &data); err != nil {
 			var wsError WebSocketError
 			if err := json.Unmarshal(bytes, &wsError); err != nil {
-				sendMessage(data, err)
+				messageFunc(data, err)
 			} else {
-				sendMessage(data, &wsError)
+				messageFunc(data, &wsError)
 			}
 		} else {
-			sendMessage(data, nil)
+			messageFunc(data, nil)
 		}
 	}
 
-	socket, err := socket.NewSocket(ctx, bitvavoWSURL, onMessage, reconnFunc)
+	onDebug := func(message string) {
+		debug(ws.printer, message)
+	}
+
+	opts := &socket.Options{
+		Url:           websocketURL,
+		HttpClient:    ws.httpClient,
+		MessageFunc:   onMessage,
+		ReconnectFunc: reconnectFunc,
+		DebugFunc:     onDebug,
+	}
+	s, err := socket.NewSocket(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
+	ws.socket = s
 
-	return &WebSocket{
-		socket: socket,
-	}, nil
+	return ws, nil
 }
 
 func (w *WebSocket) Authenticate(apiKey string, apiSecret string) error {
 	timestamp := time.Now().UnixMilli()
-	msg := message{
+	msg := messageOut{
 		Action:    "authenticate",
 		Key:       apiKey,
 		Signature: crypto.CreateSignature("GET", "/websocket", nil, timestamp, apiSecret),
@@ -123,7 +168,7 @@ func (w *WebSocket) Authenticate(apiKey string, apiSecret string) error {
 }
 
 func (w *WebSocket) Subscribe(subscriptions []Subscription) error {
-	msg := message{
+	msg := messageOut{
 		Action:   "subscribe",
 		Channels: mapToChannels(subscriptions),
 	}
@@ -132,7 +177,7 @@ func (w *WebSocket) Subscribe(subscriptions []Subscription) error {
 }
 
 func (w *WebSocket) Unsubscribe(subscriptions []Subscription) error {
-	msg := message{
+	msg := messageOut{
 		Action:   "unsubscribe",
 		Channels: mapToChannels(subscriptions),
 	}
@@ -140,15 +185,15 @@ func (w *WebSocket) Unsubscribe(subscriptions []Subscription) error {
 	return w.socket.SendJSON(context.Background(), msg)
 }
 
-func mapToChannels(subscriptions []Subscription) []chn {
-	channels := make([]chn, len(subscriptions))
+func mapToChannels(subscriptions []Subscription) []channelOut {
+	channels := make([]channelOut, len(subscriptions))
 
 	for i, subscription := range subscriptions {
 		intervals := make([]string, len(subscription.Intervals))
 		for y, interval := range subscription.Intervals {
 			intervals[y] = interval.Value
 		}
-		channels[i] = chn{
+		channels[i] = channelOut{
 			Name:      subscription.Channel.Value,
 			Markets:   subscription.Markets,
 			Intervals: intervals,

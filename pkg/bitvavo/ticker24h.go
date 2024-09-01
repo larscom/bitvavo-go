@@ -14,34 +14,34 @@ type Ticker24hData struct {
 	Market string `json:"market"`
 
 	// The open price of the 24-hour period.
-	Open float64 `json:"open"`
+	Open string `json:"open"`
 
 	// The highest price for which a trade occurred in the 24-hour period.
-	High float64 `json:"high"`
+	High string `json:"high"`
 
 	// The lowest price for which a trade occurred in the 24-hour period.
-	Low float64 `json:"low"`
+	Low string `json:"low"`
 
 	// The last price for which a trade occurred in the 24-hour period.
-	Last float64 `json:"last"`
+	Last string `json:"last"`
 
 	// The total volume of the 24-hour period in base currency.
-	Volume float64 `json:"volume"`
+	Volume string `json:"volume"`
 
 	// The total volume of the 24-hour period in quote currency.
-	VolumeQuote float64 `json:"volumeQuote"`
+	VolumeQuote string `json:"volumeQuote"`
 
 	// The best (highest) bid offer at the current moment.
-	Bid float64 `json:"bid"`
+	Bid string `json:"bid"`
 
 	// The size of the best (highest) bid offer.
-	BidSize float64 `json:"bidSize"`
+	BidSize string `json:"bidSize"`
 
 	// The best (lowest) ask offer at the current moment.
-	Ask float64 `json:"ask"`
+	Ask string `json:"ask"`
 
 	// The size of the best (lowest) ask offer.
-	AskSize float64 `json:"askSize"`
+	AskSize string `json:"askSize"`
 
 	// Timestamp in unix milliseconds.
 	Timestamp int64 `json:"timestamp"`
@@ -82,16 +82,16 @@ func (t *Ticker24hData) UnmarshalJSON(bytes []byte) error {
 	)
 
 	t.Market = market
-	t.Open = util.IfOrElse(len(open) > 0, func() float64 { return util.MustFloat64(open) }, 0)
-	t.High = util.IfOrElse(len(high) > 0, func() float64 { return util.MustFloat64(high) }, 0)
-	t.Low = util.IfOrElse(len(low) > 0, func() float64 { return util.MustFloat64(low) }, 0)
-	t.Last = util.IfOrElse(len(last) > 0, func() float64 { return util.MustFloat64(last) }, 0)
-	t.Volume = util.IfOrElse(len(volume) > 0, func() float64 { return util.MustFloat64(volume) }, 0)
-	t.VolumeQuote = util.IfOrElse(len(volumeQuote) > 0, func() float64 { return util.MustFloat64(volumeQuote) }, 0)
-	t.Bid = util.IfOrElse(len(bid) > 0, func() float64 { return util.MustFloat64(bid) }, 0)
-	t.BidSize = util.IfOrElse(len(bidSize) > 0, func() float64 { return util.MustFloat64(bidSize) }, 0)
-	t.Ask = util.IfOrElse(len(ask) > 0, func() float64 { return util.MustFloat64(ask) }, 0)
-	t.AskSize = util.IfOrElse(len(askSize) > 0, func() float64 { return util.MustFloat64(askSize) }, 0)
+	t.Open = open
+	t.High = high
+	t.Low = low
+	t.Last = last
+	t.Volume = volume
+	t.VolumeQuote = volumeQuote
+	t.Bid = bid
+	t.BidSize = bidSize
+	t.Ask = ask
+	t.AskSize = askSize
 	t.Timestamp = int64(timestamp)
 	t.StartTimestamp = int64(startTimestamp)
 	t.OpenTimestamp = int64(openTimestamp)

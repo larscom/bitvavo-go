@@ -38,12 +38,12 @@ func (c *CandleParams) Params() url.Values {
 }
 
 type CandleOnly struct {
-	Timestamp int64   `json:"timestamp"`
-	Open      float64 `json:"open"`
-	High      float64 `json:"high"`
-	Low       float64 `json:"low"`
-	Close     float64 `json:"close"`
-	Volume    float64 `json:"volume"`
+	Timestamp int64  `json:"timestamp"`
+	Open      string `json:"open"`
+	High      string `json:"high"`
+	Low       string `json:"low"`
+	Close     string `json:"close"`
+	Volume    string `json:"volume"`
 }
 
 func (c *CandleOnly) UnmarshalJSON(bytes []byte) error {
@@ -58,11 +58,11 @@ func (c *CandleOnly) UnmarshalJSON(bytes []byte) error {
 	}
 
 	c.Timestamp = int64(candle[0].(float64))
-	c.Open = util.MustFloat64(candle[1].(string))
-	c.High = util.MustFloat64(candle[2].(string))
-	c.Low = util.MustFloat64(candle[3].(string))
-	c.Close = util.MustFloat64(candle[4].(string))
-	c.Volume = util.MustFloat64(candle[5].(string))
+	c.Open = candle[1].(string)
+	c.High = candle[2].(string)
+	c.Low = candle[3].(string)
+	c.Close = candle[4].(string)
+	c.Volume = candle[5].(string)
 
 	return nil
 }
@@ -71,11 +71,11 @@ type Candle struct {
 	Interval  Interval `json:"interval"`
 	Market    string   `json:"market"`
 	Timestamp int64    `json:"timestamp"`
-	Open      float64  `json:"open"`
-	High      float64  `json:"high"`
-	Low       float64  `json:"low"`
-	Close     float64  `json:"close"`
-	Volume    float64  `json:"volume"`
+	Open      string   `json:"open"`
+	High      string   `json:"high"`
+	Low       string   `json:"low"`
+	Close     string   `json:"close"`
+	Volume    string   `json:"volume"`
 }
 
 func (c *Candle) UnmarshalJSON(bytes []byte) error {
@@ -103,11 +103,11 @@ func (c *Candle) UnmarshalJSON(bytes []byte) error {
 	c.Market = market
 	c.Interval = *intervals.Parse(interval)
 	c.Timestamp = int64(candle[0].(float64))
-	c.Open = util.MustFloat64(candle[1].(string))
-	c.High = util.MustFloat64(candle[2].(string))
-	c.Low = util.MustFloat64(candle[3].(string))
-	c.Close = util.MustFloat64(candle[4].(string))
-	c.Volume = util.MustFloat64(candle[5].(string))
+	c.Open = candle[1].(string)
+	c.High = candle[2].(string)
+	c.Low = candle[3].(string)
+	c.Close = candle[4].(string)
+	c.Volume = candle[5].(string)
 
 	return nil
 }

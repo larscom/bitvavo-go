@@ -5,23 +5,24 @@
 
 > GO **thread safe** library (WebSockets / HTTP) for Bitvavo v2 API (see: https://docs.bitvavo.com)
 
-Listen to all events occurring on the Bitvavo platform (tickers, tickers24h, candles, books, trades, orders, fills) using websockets. With the HTTP client you can do things like placing orders or withdraw assets from your account.
+Listen to all events occurring on the Bitvavo platform (tickers, tickers24h, candles, books, trades, orders, fills)
+using websockets. With the HTTP client you can do things like placing orders or withdraw assets from your account.
 
 ## 📒 Features
 
 - WebSocket Listeners -- Read only
-  - Book
-  - Candles
-  - Trades
-  - Ticker
-  - Ticker 24h
-  - Orders/Fills
+    - Book
+    - Candles
+    - Trades
+    - Ticker
+    - Ticker 24h
+    - Orders/Fills
 - HTTP Client -- Read / Write
-  - Market data endpoints
-  - Account endpoints
-  - Synchronization endpoints
-  - Trading endpoints
-  - Transfer endpoints
+    - Market data endpoints
+    - Account endpoints
+    - Synchronization endpoints
+    - Trading endpoints
+    - Transfer endpoints
 
 ## 🚀 Installation
 
@@ -37,7 +38,9 @@ import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 ## 👂 WebSocket
 
-For each event on the Bitvavo platform there is a listener available. A listener wraps a websocket connection, you can also implement your own wrapper arround the websocket. The listeners handle everything for you, like resubscribing and reauthenticating when the connection has been lost.
+For each event on the Bitvavo platform there is a listener available. A listener wraps a websocket connection, you can
+also implement your own wrapper arround the websocket. The listeners handle everything for you, like resubscribing and
+reauthenticating when the connection has been lost.
 
 ### Public listeners
 
@@ -102,6 +105,40 @@ func main() {
 
 ```
 
+### Provide debug printer
+
+You can add the debug printer option to enable debug logging for websockets. There is a default printer, but you can
+also provide your own as long as it implements the `DebugPrinter` interface.
+
+```go
+package main
+
+import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+
+func main() {
+	listener := bitvavo.NewCandlesListener(bitvavo.WithWebSocketDefaultDebugPrinter())
+}
+
+```
+
+### Provide Http client for websocket
+
+You can provide your own http client from the `net/http` package which will be used to set up the initial websocket connection.
+
+```go
+package main
+
+import (
+	"net/http"
+	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+)
+
+func main() {
+	listener := bitvavo.NewCandlesListener(bitvavo.WithWebSocketHttpClient(http.DefaultClient))
+}
+
+```
+
 ### Create custom listener
 
 It's possible to create your own wrapper arround the websocket and listen to multiple events at the same time.
@@ -113,26 +150,26 @@ import "github.com/larscom/bitvavo-go/pkg/bitvavo"
 
 func main() {
 	onMessage := func(data bitvavo.WebSocketEventData, err error) {
-			if err != nil {
-				// oh no error!
-			} else if data.Event == bitvavo.EventBook {
-				// decode into Book
-				var book bitvavo.Book
-				data.Decode(&book)
-			} else if data.Event == bitvavo.EventCandle {
-				// decode into Candle
-				var candle bitvavo.Candle
-				data.Decode(&candle)
-			}
-			// etc
+		if err != nil {
+			// oh no error!
+		} else if data.Event == bitvavo.EventBook {
+			// decode into Book
+			var book bitvavo.Book
+			data.Decode(&book)
+		} else if data.Event == bitvavo.EventCandle {
+			// decode into Candle
+			var candle bitvavo.Candle
+			data.Decode(&candle)
 		}
+		// etc
+	}
 
-		onReconnect := func() {
-			// gets called when successfully reconnected
-		}
+	onReconnect := func() {
+		// gets called when successfully reconnected
+	}
 
-		ws, err := bitvavo.NewWebSocket(context.Background(), onMessage, onReconnect)
-		// do stuff with ws
+	ws, err := bitvavo.NewWebSocket(context.Background(), onMessage, onReconnect)
+	// do stuff with ws
 }
 ```
 
@@ -140,7 +177,8 @@ func main() {
 
 The HTTP client implements 2 interfaces (PrivateAPI and PublicAPI)
 
-If you need both private and public endpoints you can create a private http client as it includes both public and private endpoints.
+If you need both private and public endpoints you can create a private http client as it includes both public and
+private endpoints.
 
 ### Private and Public endpoints
 
@@ -199,6 +237,62 @@ func main() {
 		Limit: 100,
 	}
 	trades, err := client.GetTrades(context.Background(), "ETH-EUR", params)
+}
+
+```
+
+### Provide HTTP client
+
+You can provide your own http client from the `net/http` package which will be used to execute all requests.
+
+```go
+package main
+
+import (
+	"net/http"
+	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+)
+
+func main() {
+	client := bitvavo.NewPublicHTTPClient(bitvavo.WithHttpClient(http.DefaultClient))
+}
+
+```
+
+### Provide window time
+
+You can provide your own window time which specifies the maximum allowed deviation (in milliseconds) between the
+timestamp you sent and the server's actual time when processing your request.
+
+The default window time is: `10000` (10 seconds)
+
+```go
+package main
+
+import (
+	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+)
+
+func main() {
+	client := bitvavo.NewPrivateHTTPClient("MY_API_KEY", "MY_API_SECRET", bitvavo.WithWindowTime(5000))
+}
+
+```
+
+### Provide debug printer
+
+You can add the debug printer option to enable debug logging for http. There is a default printer, but you can
+also provide your own as long as it implements the `DebugPrinter` interface.
+
+```go
+package main
+
+import (
+	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+)
+
+func main() {
+	client := bitvavo.NewPrivateHTTPClient("MY_API_KEY", "MY_API_SECRET", bitvavo.WithDefaultDebugPrinter())
 }
 
 ```

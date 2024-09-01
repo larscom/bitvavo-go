@@ -9,7 +9,7 @@ type OrderEvent ListenerEvent[Order]
 
 type OrderListener authListener[OrderEvent]
 
-func NewOrderListener(apiKey, apiSecret string) Listener[OrderEvent] {
+func NewOrderListener(apiKey, apiSecret string, options ...WebSocketOption) Listener[OrderEvent] {
 	chn := make(chan OrderEvent)
 	rchn := make(chan struct{})
 	authchn := make(chan bool)
@@ -29,9 +29,12 @@ func NewOrderListener(apiKey, apiSecret string) Listener[OrderEvent] {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ws, err := NewWebSocket(ctx, l.onMessage, func() {
-		rchn <- struct{}{}
-	})
+	ws, err := NewWebSocket(
+		ctx,
+		l.onMessage,
+		func() { rchn <- struct{}{} },
+		options...,
+	)
 
 	if err != nil {
 		panic(err)
@@ -67,22 +70,20 @@ func (l *OrderListener) Unsubscribe(markets []string) error {
 }
 
 func (l *OrderListener) Close() error {
-	if len(l.subscriptions) == 0 {
-		return ErrNoSubscriptions
+	defer func() {
+		l.closefn()
+
+		close(l.chn)
+		close(l.rchn)
+		close(l.authchn)
+		close(l.pendingsubs)
+	}()
+
+	if len(l.subscriptions) > 0 {
+		if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
+			return err
+		}
 	}
-
-	if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
-		return err
-	}
-
-	l.closefn()
-
-	close(l.chn)
-	close(l.rchn)
-	close(l.authchn)
-	close(l.pendingsubs)
-
-	l.subscriptions = nil
 
 	return nil
 }
@@ -106,7 +107,7 @@ func (l *OrderListener) onMessage(data WebSocketEventData, err error) {
 			if ok {
 				l.subscriptions = []Subscription{NewSubscription(l.channel, markets)}
 			} else {
-				l.chn <- OrderEvent{Error: ErrExpectedChannel(l.channel)}
+				l.subscriptions = nil
 			}
 		}
 	} else if data.Event == EventOrder {

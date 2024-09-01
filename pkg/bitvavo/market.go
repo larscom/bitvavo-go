@@ -35,16 +35,16 @@ type Market struct {
 	PricePrecision int64 `json:"pricePrecision"`
 
 	// The minimum amount in quote currency (amountQuote or amount * price) for valid orders.
-	MinOrderInBaseAsset float64 `json:"minOrderInBaseAsset"`
+	MinOrderInBaseAsset string `json:"minOrderInBaseAsset"`
 
 	// The minimum amount in base currency for valid orders.
-	MinOrderInQuoteAsset float64 `json:"minOrderInQuoteAsset"`
+	MinOrderInQuoteAsset string `json:"minOrderInQuoteAsset"`
 
 	// The maximum amount in quote currency (amountQuote or amount * price) for valid orders.
-	MaxOrderInBaseAsset float64 `json:"maxOrderInBaseAsset"`
+	MaxOrderInBaseAsset string `json:"maxOrderInBaseAsset"`
 
 	// The maximum amount in base currency for valid orders.
-	MaxOrderInQuoteAsset float64 `json:"maxOrderInQuoteAsset"`
+	MaxOrderInQuoteAsset string `json:"maxOrderInQuoteAsset"`
 
 	// Allowed order types for this market.
 	OrderTypes []OrderType `json:"orderTypes"`
@@ -80,10 +80,10 @@ func (m *Market) UnmarshalJSON(bytes []byte) error {
 	m.Base = base
 	m.Quote = quote
 	m.PricePrecision = int64(pricePrecision)
-	m.MinOrderInBaseAsset = util.IfOrElse(len(minOrderInBaseAsset) > 0, func() float64 { return util.MustFloat64(minOrderInBaseAsset) }, 0)
-	m.MinOrderInQuoteAsset = util.IfOrElse(len(minOrderInQuoteAsset) > 0, func() float64 { return util.MustFloat64(minOrderInQuoteAsset) }, 0)
-	m.MaxOrderInBaseAsset = util.IfOrElse(len(maxOrderInBaseAsset) > 0, func() float64 { return util.MustFloat64(maxOrderInBaseAsset) }, 0)
-	m.MaxOrderInQuoteAsset = util.IfOrElse(len(maxOrderInQuoteAsset) > 0, func() float64 { return util.MustFloat64(maxOrderInQuoteAsset) }, 0)
+	m.MinOrderInBaseAsset = minOrderInBaseAsset
+	m.MinOrderInQuoteAsset = minOrderInQuoteAsset
+	m.MaxOrderInBaseAsset = maxOrderInBaseAsset
+	m.MaxOrderInQuoteAsset = maxOrderInQuoteAsset
 	m.OrderTypes = types
 
 	return nil

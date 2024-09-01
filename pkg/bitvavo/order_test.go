@@ -13,10 +13,10 @@ func TestMaxOrderNewMarshaller(t *testing.T) {
 		Market:                  "ETH-EUR",
 		Side:                    SideBuy,
 		OrderType:               OrderTypeLimit,
-		Amount:                  1.5,
-		Price:                   2500.50,
-		AmountQuote:             105.5,
-		TriggerAmount:           10.2,
+		Amount:                  "1.5",
+		Price:                   "2500.50",
+		AmountQuote:             "105.5",
+		TriggerAmount:           "10.2",
 		TriggerType:             OrderTriggerTypeDefault,
 		TriggerReference:        OrderTriggerRefBestAsk,
 		TimeInForce:             TimeInForceDefault,
@@ -31,7 +31,7 @@ func TestMaxOrderNewMarshaller(t *testing.T) {
 		t.Error(err)
 	}
 
-	expected := "{\"market\":\"ETH-EUR\",\"amount\":1.5,\"price\":2500.5,\"amountQuote\":105.5,\"triggerAmount\":10.2,\"postOnly\":true,\"responseRequired\":true,\"side\":\"buy\",\"orderType\":\"limit\",\"triggerType\":\"price\",\"triggerReference\":\"bestAsk\",\"timeInForce\":\"GTC\",\"selfTradePrevention\":\"decrementAndCancel\"}"
+	expected := "{\"market\":\"ETH-EUR\",\"amount\":\"1.5\",\"price\":\"2500.50\",\"amountQuote\":\"105.5\",\"triggerAmount\":\"10.2\",\"postOnly\":true,\"responseRequired\":true,\"side\":\"buy\",\"orderType\":\"limit\",\"triggerType\":\"price\",\"triggerReference\":\"bestAsk\",\"timeInForce\":\"GTC\",\"selfTradePrevention\":\"decrementAndCancel\"}"
 	actual := string(bytes)
 
 	fmt.Printf("%q", actual)
@@ -63,11 +63,11 @@ func TestMaxOrderUpdateMarshaller(t *testing.T) {
 	order := OrderUpdate{
 		Market:              "ETH-EUR",
 		OrderId:             "123",
-		Amount:              1.5,
-		AmountQuote:         105.5,
-		AmountRemaining:     10.5,
-		Price:               2500.50,
-		TriggerAmount:       10.2,
+		Amount:              "1.5",
+		AmountQuote:         "105.5",
+		AmountRemaining:     "10.5",
+		Price:               "2500.50",
+		TriggerAmount:       "10.2",
 		TimeInForce:         TimeInForceDefault,
 		SelfTradePrevention: SelfTradePreventionDefault,
 		PostOnly:            true,
@@ -79,7 +79,7 @@ func TestMaxOrderUpdateMarshaller(t *testing.T) {
 		t.Error(err)
 	}
 
-	expected := "{\"market\":\"ETH-EUR\",\"orderId\":\"123\",\"amount\":1.5,\"amountQuote\":105.5,\"amountRemaining\":10.5,\"price\":2500.5,\"triggerAmount\":10.2,\"postOnly\":true,\"responseRequired\":true,\"timeInForce\":\"GTC\",\"selfTradePrevention\":\"decrementAndCancel\"}"
+	expected := "{\"market\":\"ETH-EUR\",\"orderId\":\"123\",\"amount\":\"1.5\",\"amountQuote\":\"105.5\",\"amountRemaining\":\"10.5\",\"price\":\"2500.50\",\"triggerAmount\":\"10.2\",\"postOnly\":true,\"responseRequired\":true,\"timeInForce\":\"GTC\",\"selfTradePrevention\":\"decrementAndCancel\"}"
 	actual := string(bytes)
 
 	fmt.Printf("%q", actual)

@@ -35,7 +35,9 @@ func main() {
 	<-time.After(time.Second * 2)
 
 	listener := bitvavo.NewTickerListener()
-	defer listener.Close()
+	defer func() {
+		_ = listener.Close()
+	}()
 
 	chn, err := listener.Subscribe(tradingMarkets)
 	if err != nil {

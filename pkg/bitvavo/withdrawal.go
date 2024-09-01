@@ -68,7 +68,7 @@ type WithdrawalHistory struct {
 	Symbol string `json:"symbol"`
 
 	// Amount that has been withdrawn.
-	Amount float64 `json:"amount"`
+	Amount string `json:"amount"`
 
 	// Address that has been used for this withdrawal.
 	Address string `json:"address"`
@@ -80,7 +80,7 @@ type WithdrawalHistory struct {
 	TxId string `json:"txId"`
 
 	// The fee which has been paid to withdraw this currency.
-	Fee float64 `json:"fee"`
+	Fee string `json:"fee"`
 
 	// The status of the withdrawal.
 	Status WithdrawalHistoryStatus `json:"status"`
@@ -106,11 +106,11 @@ func (w *WithdrawalHistory) UnmarshalJSON(bytes []byte) error {
 
 	w.Timestamp = int64(timestamp)
 	w.Symbol = symbol
-	w.Amount = util.IfOrElse(len(amount) > 0, func() float64 { return util.MustFloat64(amount) }, 0)
+	w.Amount = amount
 	w.Address = address
 	w.PaymentId = paymentId
 	w.TxId = txId
-	w.Fee = util.IfOrElse(len(fee) > 0, func() float64 { return util.MustFloat64(fee) }, 0)
+	w.Fee = fee
 	w.Status = *withDrawalHistoryStatuses.Parse(status)
 
 	return nil
@@ -121,7 +121,7 @@ type Withdrawal struct {
 	Symbol string `json:"symbol"`
 
 	// Total amount that has been deducted from your balance.
-	Amount float64 `json:"amount"`
+	Amount string `json:"amount"`
 
 	// Wallet address or IBAN.
 	// For digital assets: please double check this address. Funds sent can not be recovered.
@@ -149,25 +149,5 @@ type WithDrawalResponse struct {
 	Symbol string `json:"symbol"`
 
 	// Total amount that has been deducted from your balance.
-	Amount float64 `json:"amount"`
-}
-
-func (r *WithDrawalResponse) UnmarshalJSON(bytes []byte) error {
-	var j map[string]any
-
-	if err := json.Unmarshal(bytes, &j); err != nil {
-		return err
-	}
-
-	var (
-		success = util.GetOrEmpty[bool]("success", j)
-		symbol  = util.GetOrEmpty[string]("symbol", j)
-		amount  = util.GetOrEmpty[string]("amount", j)
-	)
-
-	r.Success = success
-	r.Symbol = symbol
-	r.Amount = util.IfOrElse(len(amount) > 0, func() float64 { return util.MustFloat64(amount) }, 0)
-
-	return nil
+	Amount string `json:"amount"`
 }

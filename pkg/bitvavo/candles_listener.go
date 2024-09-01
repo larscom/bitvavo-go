@@ -9,7 +9,7 @@ type CandleEvent ListenerEvent[Candle]
 
 type CandlesListener listener[CandleEvent]
 
-func NewCandlesListener() *CandlesListener {
+func NewCandlesListener(options ...WebSocketOption) *CandlesListener {
 	chn := make(chan CandleEvent)
 	rchn := make(chan struct{})
 
@@ -21,9 +21,12 @@ func NewCandlesListener() *CandlesListener {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ws, err := NewWebSocket(ctx, l.onMessage, func() {
-		rchn <- struct{}{}
-	})
+	ws, err := NewWebSocket(
+		ctx,
+		l.onMessage,
+		func() { rchn <- struct{}{} },
+		options...,
+	)
 
 	if err != nil {
 		panic(err)
@@ -57,20 +60,17 @@ func (l *CandlesListener) Unsubscribe(markets []string, intervals []Interval) er
 
 // Close everything, graceful shutdown.
 func (l *CandlesListener) Close() error {
-	if len(l.subscriptions) == 0 {
-		return ErrNoSubscriptions
+	defer func() {
+		l.closefn()
+		close(l.chn)
+		close(l.rchn)
+	}()
+
+	if len(l.subscriptions) > 0 {
+		if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
+			return err
+		}
 	}
-
-	if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
-		return err
-	}
-
-	l.closefn()
-
-	close(l.chn)
-	close(l.rchn)
-
-	l.subscriptions = nil
 
 	return nil
 }
@@ -93,7 +93,7 @@ func (l *CandlesListener) onMessage(data WebSocketEventData, err error) {
 				}
 				l.subscriptions = []Subscription{NewSubscription(l.channel, markets, intervals...)}
 			} else {
-				l.chn <- CandleEvent{Error: ErrExpectedChannel(l.channel)}
+				l.subscriptions = nil
 			}
 		}
 	} else if data.Event == EventCandle {

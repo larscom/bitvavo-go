@@ -57,10 +57,10 @@ type Trade struct {
 	Market string `json:"market"`
 
 	// The amount in base currency for which the trade has been made.
-	Amount float64 `json:"amount"`
+	Amount string `json:"amount"`
 
 	// The price in quote currency for which the trade has been made.
-	Price float64 `json:"price"`
+	Price string `json:"price"`
 
 	// The side for the taker.
 	Side Side `json:"side"`
@@ -87,8 +87,8 @@ func (t *Trade) UnmarshalJSON(bytes []byte) error {
 
 	t.Id = id
 	t.Market = market
-	t.Amount = util.IfOrElse(len(amount) > 0, func() float64 { return util.MustFloat64(amount) }, 0)
-	t.Price = util.IfOrElse(len(price) > 0, func() float64 { return util.MustFloat64(price) }, 0)
+	t.Amount = amount
+	t.Price = price
 	t.Side = *sides.Parse(side)
 	t.Timestamp = int64(timestamp)
 

@@ -23,10 +23,10 @@ type Book struct {
 
 type Page struct {
 	// Bid / ask price.
-	Price float64 `json:"price"`
+	Price string `json:"price"`
 
-	//  Size of 0 means orders are no longer present at that price level, otherwise the returned size is the new total size on that price level.
-	Size float64 `json:"size"`
+	//  Size of "0" means orders are no longer present at that price level, otherwise the returned size is the new total size on that price level.
+	Size string `json:"size"`
 }
 
 func (b *Book) UnmarshalJSON(bytes []byte) error {
@@ -49,8 +49,8 @@ func (b *Book) UnmarshalJSON(bytes []byte) error {
 		size := bidEvents[i].([]any)[1].(string)
 
 		bids[i] = Page{
-			Price: util.IfOrElse(len(price) > 0, func() float64 { return util.MustFloat64(price) }, 0),
-			Size:  util.IfOrElse(len(size) > 0, func() float64 { return util.MustFloat64(size) }, 0),
+			Price: price,
+			Size:  size,
 		}
 	}
 
@@ -60,8 +60,8 @@ func (b *Book) UnmarshalJSON(bytes []byte) error {
 		size := askEvents[i].([]any)[1].(string)
 
 		asks[i] = Page{
-			Price: util.IfOrElse(len(price) > 0, func() float64 { return util.MustFloat64(price) }, 0),
-			Size:  util.IfOrElse(len(size) > 0, func() float64 { return util.MustFloat64(size) }, 0),
+			Price: price,
+			Size:  size,
 		}
 	}
 

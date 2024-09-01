@@ -3,15 +3,16 @@ package bitvavo
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"sync"
 	"time"
-
-	"github.com/larscom/bitvavo-go/internal/util"
 )
 
 const (
-	bitvavoURL = "https://api.bitvavo.com/v2"
+	apiURL = "https://api.bitvavo.com/v2"
+
+	defaultWindowTimeMs = 10000
 
 	headerRatelimit        = "Bitvavo-Ratelimit-Remaining"
 	headerRatelimitResetAt = "Bitvavo-Ratelimit-Resetat"
@@ -158,13 +159,51 @@ type PrivateAPI interface {
 
 	// Withdraw requests a withdrawal to an external cryptocurrency address or verified bank account.
 	// Please note that 2FA and address confirmation by e-mail are disabled for API withdrawals.
-	Withdraw(ctx context.Context, symbol string, amount float64, address string, withdrawal Withdrawal) (WithDrawalResponse, error)
+	Withdraw(ctx context.Context, symbol string, amount string, address string, withdrawal Withdrawal) (WithDrawalResponse, error)
 }
 
-type privateConfig struct {
+type HttpOption func(*httpClient)
+
+func WithHttpClient(client *http.Client) HttpOption {
+	return func(c *httpClient) {
+		c.httpConfig.client = client
+	}
+}
+
+func WithWindowTime(windowTimeMs uint16) HttpOption {
+	return func(c *httpClient) {
+		if c.authConfig != nil {
+			if windowTimeMs == 0 || windowTimeMs > 60000 {
+				panic("windowTimeMs must be > 0 and <= 60000")
+			}
+			c.authConfig.windowTime = windowTimeMs
+		}
+	}
+}
+
+func WithDebugPrinter(printer DebugPrinter) HttpOption {
+	return func(c *httpClient) {
+		c.httpConfig.printer = printer
+	}
+}
+
+func WithDefaultDebugPrinter() HttpOption {
+	return func(c *httpClient) {
+		c.httpConfig.printer = NewDefaultDebugPrinter()
+	}
+}
+
+type authConfig struct {
 	apiKey     string
 	apiSecret  string
 	windowTime uint16
+}
+
+type httpConfig struct {
+	updateRateLimit        func(ratelimit int64)
+	updateRateLimitResetAt func(resetAt time.Time)
+	client                 *http.Client
+	printer                DebugPrinter
 }
 
 type httpClient struct {
@@ -172,13 +211,24 @@ type httpClient struct {
 	ratelimit        int64
 	ratelimitResetAt time.Time
 
-	config *privateConfig
+	httpConfig *httpConfig
+	authConfig *authConfig
 }
 
-func NewPublicHTTPClient() PublicAPI {
-	return &httpClient{
-		ratelimit: -1,
+func NewPublicHTTPClient(options ...HttpOption) PublicAPI {
+	client := new(httpClient)
+	client.ratelimit = -1
+	client.httpConfig = &httpConfig{
+		updateRateLimit:        client.updateRateLimit,
+		updateRateLimitResetAt: client.updateRateLimitResetAt,
+		client:                 http.DefaultClient,
 	}
+
+	for _, opt := range options {
+		opt(client)
+	}
+
+	return client
 }
 
 func (c *httpClient) GetRateLimit() int64 {
@@ -192,10 +242,9 @@ func (c *httpClient) GetRateLimitResetAt() time.Time {
 func (c *httpClient) GetTime(ctx context.Context) (int64, error) {
 	resp, err := httpGet[map[string]float64](
 		ctx,
-		fmt.Sprintf("%s/time", bitvavoURL),
+		fmt.Sprintf("%s/time", apiURL),
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 	if err != nil {
@@ -208,10 +257,9 @@ func (c *httpClient) GetTime(ctx context.Context) (int64, error) {
 func (c *httpClient) GetMarkets(ctx context.Context) ([]Market, error) {
 	return httpGet[[]Market](
 		ctx,
-		fmt.Sprintf("%s/markets", bitvavoURL),
+		fmt.Sprintf("%s/markets", apiURL),
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -222,10 +270,9 @@ func (c *httpClient) GetMarket(ctx context.Context, market string) (Market, erro
 
 	return httpGet[Market](
 		ctx,
-		fmt.Sprintf("%s/markets", bitvavoURL),
+		fmt.Sprintf("%s/markets", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -233,10 +280,9 @@ func (c *httpClient) GetMarket(ctx context.Context, market string) (Market, erro
 func (c *httpClient) GetAssets(ctx context.Context) ([]Asset, error) {
 	return httpGet[[]Asset](
 		ctx,
-		fmt.Sprintf("%s/assets", bitvavoURL),
+		fmt.Sprintf("%s/assets", apiURL),
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -247,10 +293,9 @@ func (c *httpClient) GetAsset(ctx context.Context, symbol string) (Asset, error)
 
 	return httpGet[Asset](
 		ctx,
-		fmt.Sprintf("%s/assets", bitvavoURL),
+		fmt.Sprintf("%s/assets", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -263,10 +308,9 @@ func (c *httpClient) GetOrderBook(ctx context.Context, market string, depth ...u
 
 	return httpGet[Book](
 		ctx,
-		fmt.Sprintf("%s/%s/book", bitvavoURL, market),
+		fmt.Sprintf("%s/%s/book", apiURL, market),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -278,10 +322,9 @@ func (c *httpClient) GetTrades(ctx context.Context, market string, opt ...Params
 	}
 	return httpGet[[]Trade](
 		ctx,
-		fmt.Sprintf("%s/%s/trades", bitvavoURL, market),
+		fmt.Sprintf("%s/%s/trades", apiURL, market),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -295,10 +338,9 @@ func (c *httpClient) GetCandles(ctx context.Context, market string, interval Int
 
 	return httpGet[[]CandleOnly](
 		ctx,
-		fmt.Sprintf("%s/%s/candles", bitvavoURL, market),
+		fmt.Sprintf("%s/%s/candles", apiURL, market),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -306,10 +348,9 @@ func (c *httpClient) GetCandles(ctx context.Context, market string, interval Int
 func (c *httpClient) GetTickerPrices(ctx context.Context) ([]TickerPrice, error) {
 	return httpGet[[]TickerPrice](
 		ctx,
-		fmt.Sprintf("%s/ticker/price", bitvavoURL),
+		fmt.Sprintf("%s/ticker/price", apiURL),
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -320,10 +361,9 @@ func (c *httpClient) GetTickerPrice(ctx context.Context, market string) (TickerP
 
 	return httpGet[TickerPrice](
 		ctx,
-		fmt.Sprintf("%s/ticker/price", bitvavoURL),
+		fmt.Sprintf("%s/ticker/price", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -331,10 +371,9 @@ func (c *httpClient) GetTickerPrice(ctx context.Context, market string) (TickerP
 func (c *httpClient) GetTickerBooks(ctx context.Context) ([]TickerBook, error) {
 	return httpGet[[]TickerBook](
 		ctx,
-		fmt.Sprintf("%s/ticker/book", bitvavoURL),
+		fmt.Sprintf("%s/ticker/book", apiURL),
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -345,10 +384,9 @@ func (c *httpClient) GetTickerBook(ctx context.Context, market string) (TickerBo
 
 	return httpGet[TickerBook](
 		ctx,
-		fmt.Sprintf("%s/ticker/book", bitvavoURL),
+		fmt.Sprintf("%s/ticker/book", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -356,10 +394,9 @@ func (c *httpClient) GetTickerBook(ctx context.Context, market string) (TickerBo
 func (c *httpClient) GetTickers24h(ctx context.Context) ([]Ticker24hData, error) {
 	return httpGet[[]Ticker24hData](
 		ctx,
-		fmt.Sprintf("%s/ticker/24h", bitvavoURL),
+		fmt.Sprintf("%s/ticker/24h", apiURL),
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -370,10 +407,9 @@ func (c *httpClient) GetTicker24h(ctx context.Context, market string) (Ticker24h
 
 	return httpGet[Ticker24hData](
 		ctx,
-		fmt.Sprintf("%s/ticker/24h", bitvavoURL),
+		fmt.Sprintf("%s/ticker/24h", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
+		c.httpConfig,
 		nil,
 	)
 }
@@ -390,20 +426,25 @@ func (c *httpClient) updateRateLimitResetAt(resetAt time.Time) {
 	c.ratelimitResetAt = resetAt
 }
 
-func NewPrivateHTTPClient(apiKey, apiSecret string, windowTimeMs ...uint16) PrivateAPI {
-	windowTime := util.IfOrElse(len(windowTimeMs) > 0, func() uint16 { return windowTimeMs[0] }, 10000)
-	if windowTime == 0 || windowTime > 60000 {
-		panic("windowTimeMs must be > 0 and <= 60000")
+func NewPrivateHTTPClient(apiKey, apiSecret string, options ...HttpOption) PrivateAPI {
+	client := new(httpClient)
+	client.ratelimit = -1
+	client.httpConfig = &httpConfig{
+		updateRateLimit:        client.updateRateLimit,
+		updateRateLimitResetAt: client.updateRateLimitResetAt,
+		client:                 http.DefaultClient,
+	}
+	client.authConfig = &authConfig{
+		apiKey:     apiKey,
+		apiSecret:  apiSecret,
+		windowTime: defaultWindowTimeMs,
 	}
 
-	return &httpClient{
-		ratelimit: -1,
-		config: &privateConfig{
-			apiKey:     apiKey,
-			apiSecret:  apiSecret,
-			windowTime: windowTime,
-		},
+	for _, opt := range options {
+		opt(client)
 	}
+
+	return client
 }
 
 func (c *httpClient) GetBalance(ctx context.Context, symbol ...string) ([]Balance, error) {
@@ -414,22 +455,20 @@ func (c *httpClient) GetBalance(ctx context.Context, symbol ...string) ([]Balanc
 
 	return httpGet[[]Balance](
 		ctx,
-		fmt.Sprintf("%s/balance", bitvavoURL),
+		fmt.Sprintf("%s/balance", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
 func (c *httpClient) GetAccount(ctx context.Context) (Account, error) {
 	return httpGet[Account](
 		ctx,
-		fmt.Sprintf("%s/account", bitvavoURL),
+		fmt.Sprintf("%s/account", apiURL),
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -442,11 +481,10 @@ func (c *httpClient) GetOrders(ctx context.Context, market string, opt ...Params
 
 	return httpGet[[]Order](
 		ctx,
-		fmt.Sprintf("%s/orders", bitvavoURL),
+		fmt.Sprintf("%s/orders", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -458,11 +496,10 @@ func (c *httpClient) GetOrdersOpen(ctx context.Context, market ...string) ([]Ord
 
 	return httpGet[[]Order](
 		ctx,
-		fmt.Sprintf("%s/ordersOpen", bitvavoURL),
+		fmt.Sprintf("%s/ordersOpen", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -473,11 +510,10 @@ func (c *httpClient) GetOrder(ctx context.Context, market string, orderId string
 
 	return httpGet[Order](
 		ctx,
-		fmt.Sprintf("%s/order", bitvavoURL),
+		fmt.Sprintf("%s/order", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -489,11 +525,10 @@ func (c *httpClient) CancelOrders(ctx context.Context, market ...string) ([]stri
 
 	resp, err := httpDelete[[]map[string]string](
 		ctx,
-		fmt.Sprintf("%s/orders", bitvavoURL),
+		fmt.Sprintf("%s/orders", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 	if err != nil {
 		return nil, err
@@ -514,11 +549,10 @@ func (c *httpClient) CancelOrder(ctx context.Context, market string, orderId str
 
 	resp, err := httpDelete[map[string]string](
 		ctx,
-		fmt.Sprintf("%s/order", bitvavoURL),
+		fmt.Sprintf("%s/order", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 	if err != nil {
 		return "", err
@@ -534,12 +568,11 @@ func (c *httpClient) NewOrder(ctx context.Context, market string, side Side, ord
 
 	return httpPost[Order](
 		ctx,
-		fmt.Sprintf("%s/order", bitvavoURL),
+		fmt.Sprintf("%s/order", apiURL),
 		order,
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -549,12 +582,11 @@ func (c *httpClient) UpdateOrder(ctx context.Context, market string, orderId str
 
 	return httpPut[Order](
 		ctx,
-		fmt.Sprintf("%s/order", bitvavoURL),
+		fmt.Sprintf("%s/order", apiURL),
 		order,
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -567,11 +599,10 @@ func (c *httpClient) GetTradesHistoric(ctx context.Context, market string, opt .
 
 	return httpGet[[]TradeHistoric](
 		ctx,
-		fmt.Sprintf("%s/trades", bitvavoURL),
+		fmt.Sprintf("%s/trades", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -581,11 +612,10 @@ func (c *httpClient) GetDepositAsset(ctx context.Context, symbol string) (Deposi
 
 	return httpGet[DepositAsset](
 		ctx,
-		fmt.Sprintf("%s/deposit", bitvavoURL),
+		fmt.Sprintf("%s/deposit", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -596,11 +626,10 @@ func (c *httpClient) GetDepositHistory(ctx context.Context, opt ...Params) ([]De
 	}
 	return httpGet[[]DepositHistory](
 		ctx,
-		fmt.Sprintf("%s/depositHistory", bitvavoURL),
+		fmt.Sprintf("%s/depositHistory", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
@@ -611,26 +640,24 @@ func (c *httpClient) GetWithdrawalHistory(ctx context.Context, opt ...Params) ([
 	}
 	return httpGet[[]WithdrawalHistory](
 		ctx,
-		fmt.Sprintf("%s/withdrawalHistory", bitvavoURL),
+		fmt.Sprintf("%s/withdrawalHistory", apiURL),
 		params,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }
 
-func (c *httpClient) Withdraw(ctx context.Context, symbol string, amount float64, address string, withdrawal Withdrawal) (WithDrawalResponse, error) {
+func (c *httpClient) Withdraw(ctx context.Context, symbol string, amount string, address string, withdrawal Withdrawal) (WithDrawalResponse, error) {
 	withdrawal.Symbol = symbol
 	withdrawal.Amount = amount
 	withdrawal.Address = address
 
 	return httpPost[WithDrawalResponse](
 		ctx,
-		fmt.Sprintf("%s/withdrawal", bitvavoURL),
+		fmt.Sprintf("%s/withdrawal", apiURL),
 		withdrawal,
 		emptyParams,
-		c.updateRateLimit,
-		c.updateRateLimitResetAt,
-		c.config,
+		c.httpConfig,
+		c.authConfig,
 	)
 }

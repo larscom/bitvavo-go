@@ -2,44 +2,58 @@ package socket
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
+	"net/http"
 	"time"
-
-	"nhooyr.io/websocket"
-	"nhooyr.io/websocket/wsjson"
 )
+
+const readLimit = 655350
+
+type Options struct {
+	Url        string
+	HttpClient *http.Client
+
+	// messageFunc gets executed on each received message from the socket
+	MessageFunc func(bytes []byte)
+	// reconnectFunc gets called when successfully reconnected to the socket
+	ReconnectFunc func()
+	// debugFunc gets called on every connection event
+	DebugFunc func(string)
+}
 
 type Socket struct {
 	conn *websocket.Conn
-	url  string
-
-	// buffer for the handler func, each received message gets stored into buffer
+	// buffer for the messageFunc func, each received message gets stored into buffer
 	buffer chan []byte
-	// handler gets executed on each received message from the socket
-	handler func([]byte)
-	// reconnector gets called when successfully reconnected to the socket
-	reconnector func()
+
+	options *Options
 }
 
 func NewSocket(
 	ctx context.Context,
-	url string,
-	handler func(bytes []byte),
-	reconnector func(),
+	options *Options,
 ) (*Socket, error) {
-	conn, err := dial(ctx, url)
+	if options == nil {
+		return nil, errors.New("options is nil")
+	}
+
+	conn, err := dial(ctx, options.Url, options.HttpClient)
 	if err != nil {
 		return nil, err
 	}
 
 	socket := &Socket{
-		buffer:      make(chan []byte, 1024),
-		conn:        conn,
-		url:         url,
-		handler:     handler,
-		reconnector: reconnector,
+		buffer:  make(chan []byte, 1024),
+		conn:    conn,
+		options: options,
 	}
 
-	go socket.listen(ctx)
+	go func() {
+		_ = socket.listen(ctx)
+	}()
 
 	return socket, nil
 }
@@ -49,30 +63,40 @@ func (w *Socket) SendJSON(ctx context.Context, msg any) error {
 }
 
 func (w *Socket) reconnect(ctx context.Context) {
-	conn, err := dial(ctx, w.url)
+	w.options.DebugFunc("websocket reconnecting...")
+
+	conn, err := dial(ctx, w.options.Url, w.options.HttpClient)
 	if err != nil {
+		w.options.DebugFunc(fmt.Sprint("websocket error while reconnecting: ", err))
 		time.Sleep(time.Second)
 		w.reconnect(ctx)
 		return
 	}
 
 	w.conn = conn
-	w.reconnector()
+	w.options.ReconnectFunc()
+	w.options.DebugFunc("websocket reconnected")
 
-	go w.listen(ctx)
+	go func() {
+		_ = w.listen(ctx)
+	}()
 }
 
 func (w *Socket) readToBuffer(ctx context.Context) {
+	w.options.DebugFunc("websocket connected")
 	for {
 		_, b, err := w.conn.Read(ctx)
 		if err != nil {
-			w.conn.CloseNow()
+			_ = w.conn.CloseNow()
+			w.options.DebugFunc(fmt.Sprint("websocket disconnected with error: ", err))
 			if ctx.Err() == nil {
+				//goland:noinspection ALL
 				defer w.reconnect(ctx)
 			}
 			return
 		}
 		w.buffer <- b
+		w.options.DebugFunc(fmt.Sprint("websocket received: ", string(b)))
 	}
 }
 
@@ -84,15 +108,18 @@ func (w *Socket) listen(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case bytes := <-w.buffer:
-			w.handler(bytes)
+			w.options.MessageFunc(bytes)
 		}
 	}
 }
 
-func dial(ctx context.Context, url string) (*websocket.Conn, error) {
-	c, _, err := websocket.Dial(ctx, url, nil)
+func dial(ctx context.Context, url string, httpClient *http.Client) (*websocket.Conn, error) {
+	c, _, err := websocket.Dial(ctx, url, &websocket.DialOptions{
+		HTTPClient: httpClient,
+	})
 	if err != nil {
 		return nil, err
 	}
+	c.SetReadLimit(readLimit)
 	return c, nil
 }

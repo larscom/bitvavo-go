@@ -9,7 +9,7 @@ type TradeEvent ListenerEvent[Trade]
 
 type TradesListener listener[TradeEvent]
 
-func NewTradesListener() Listener[TradeEvent] {
+func NewTradesListener(options ...WebSocketOption) Listener[TradeEvent] {
 	chn := make(chan TradeEvent)
 	rchn := make(chan struct{})
 
@@ -21,9 +21,12 @@ func NewTradesListener() Listener[TradeEvent] {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ws, err := NewWebSocket(ctx, l.onMessage, func() {
-		rchn <- struct{}{}
-	})
+	ws, err := NewWebSocket(
+		ctx,
+		l.onMessage,
+		func() { rchn <- struct{}{} },
+		options...,
+	)
 
 	if err != nil {
 		panic(err)
@@ -54,20 +57,17 @@ func (l *TradesListener) Unsubscribe(markets []string) error {
 }
 
 func (l *TradesListener) Close() error {
-	if len(l.subscriptions) == 0 {
-		return ErrNoSubscriptions
+	defer func() {
+		l.closefn()
+		close(l.chn)
+		close(l.rchn)
+	}()
+
+	if len(l.subscriptions) > 0 {
+		if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
+			return err
+		}
 	}
-
-	if err := l.ws.Unsubscribe(l.subscriptions); err != nil {
-		return err
-	}
-
-	l.closefn()
-
-	close(l.chn)
-	close(l.rchn)
-
-	l.subscriptions = nil
 
 	return nil
 }
@@ -84,7 +84,7 @@ func (l *TradesListener) onMessage(data WebSocketEventData, err error) {
 			if ok {
 				l.subscriptions = []Subscription{NewSubscription(l.channel, markets)}
 			} else {
-				l.chn <- TradeEvent{Error: ErrExpectedChannel(l.channel)}
+				l.subscriptions = nil
 			}
 		}
 	} else if data.Event == EventTrade {

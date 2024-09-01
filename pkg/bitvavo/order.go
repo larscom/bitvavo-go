@@ -149,25 +149,25 @@ type Order struct {
 	OrderType OrderType `json:"orderType"`
 
 	// Original amount.
-	Amount float64 `json:"amount"`
+	Amount string `json:"amount"`
 
 	// Amount remaining (lower than 'amount' after fills).
-	AmountRemaining float64 `json:"amountRemaining"`
+	AmountRemaining string `json:"amountRemaining"`
 
 	// The price of the order.
-	Price float64 `json:"price"`
+	Price string `json:"price"`
 
 	// Amount of 'onHoldCurrency' that is reserved for this order. This is released when orders are canceled.
-	OnHold float64 `json:"onHold"`
+	OnHold string `json:"onHold"`
 
 	// The currency placed on hold is the quote currency for sell orders and base currency for buy orders.
 	OnHoldCurrency string `json:"onHoldCurrency"`
 
 	// Only for stop orders: The current price used in the trigger. This is based on the triggerAmount and triggerType.
-	TriggerPrice float64 `json:"triggerPrice"`
+	TriggerPrice string `json:"triggerPrice"`
 
 	// Only for stop orders: The value used for the triggerType to determine the triggerPrice.
-	TriggerAmount float64 `json:"triggerAmount"`
+	TriggerAmount string `json:"triggerAmount"`
 
 	// Only for stop orders.
 	TriggerType OrderTriggerType `json:"triggerType"`
@@ -202,16 +202,16 @@ type Order struct {
 	Fills []Fill `json:"fills"`
 
 	// How much of this order is filled
-	FilledAmount float64 `json:"filledAmount"`
+	FilledAmount string `json:"filledAmount"`
 
 	// How much of this order is filled in quote currency
-	FilledAmountQuote float64 `json:"filledAmountQuote"`
+	FilledAmountQuote string `json:"filledAmountQuote"`
 
 	// The currency in which the fee is paid (e.g: EUR)
 	FeeCurrency string `json:"feeCurrency"`
 
 	// How much fee is paid
-	FeePaid float64 `json:"feePaid"`
+	FeePaid string `json:"feePaid"`
 }
 
 func (o *Order) UnmarshalJSON(bytes []byte) error {
@@ -271,13 +271,13 @@ func (o *Order) UnmarshalJSON(bytes []byte) error {
 	o.Status = *orderStatuses.Parse(status)
 	o.Side = *sides.Parse(side)
 	o.OrderType = *orderTypes.Parse(orderType)
-	o.Amount = util.IfOrElse(len(amount) > 0, func() float64 { return util.MustFloat64(amount) }, 0)
-	o.AmountRemaining = util.IfOrElse(len(amountRemaining) > 0, func() float64 { return util.MustFloat64(amountRemaining) }, 0)
-	o.Price = util.IfOrElse(len(price) > 0, func() float64 { return util.MustFloat64(price) }, 0)
-	o.OnHold = util.IfOrElse(len(onHold) > 0, func() float64 { return util.MustFloat64(onHold) }, 0)
+	o.Amount = amount
+	o.AmountRemaining = amountRemaining
+	o.Price = price
+	o.OnHold = onHold
 	o.OnHoldCurrency = onHoldCurrency
-	o.TriggerPrice = util.IfOrElse(len(triggerPrice) > 0, func() float64 { return util.MustFloat64(triggerPrice) }, 0)
-	o.TriggerAmount = util.IfOrElse(len(triggerAmount) > 0, func() float64 { return util.MustFloat64(triggerAmount) }, 0)
+	o.TriggerPrice = triggerPrice
+	o.TriggerAmount = triggerAmount
 	if len(triggerType) > 0 {
 		o.TriggerType = *orderTriggerTypes.Parse(triggerType)
 	}
@@ -290,10 +290,10 @@ func (o *Order) UnmarshalJSON(bytes []byte) error {
 	o.PostOnly = postOnly
 	o.SelfTradePrevention = *selfTradePreventions.Parse(selfTradePrevention)
 	o.Visible = visible
-	o.FilledAmount = util.IfOrElse(len(filledAmount) > 0, func() float64 { return util.MustFloat64(filledAmount) }, 0)
-	o.FilledAmountQuote = util.IfOrElse(len(filledAmountQuote) > 0, func() float64 { return util.MustFloat64(filledAmountQuote) }, 0)
+	o.FilledAmount = filledAmount
+	o.FilledAmountQuote = filledAmountQuote
 	o.FeeCurrency = feeCurrency
-	o.FeePaid = util.IfOrElse(len(feePaid) > 0, func() float64 { return util.MustFloat64(feePaid) }, 0)
+	o.FeePaid = feePaid
 
 	return nil
 }
@@ -309,17 +309,17 @@ type OrderNew struct {
 	OrderType OrderType `json:"orderType"`
 
 	// Specifies the amount of the base asset that will be bought/sold.
-	Amount float64 `json:"amount,omitempty"`
+	Amount string `json:"amount,omitempty"`
 
 	// Only for limit orders: Specifies the amount in quote currency that is paid/received for each unit of base currency.
-	Price float64 `json:"price,omitempty"`
+	Price string `json:"price,omitempty"`
 
 	// Only for market orders: If amountQuote is specified, [amountQuote] of the quote currency will be bought/sold for the best price available.
-	AmountQuote float64 `json:"amountQuote,omitempty"`
+	AmountQuote string `json:"amountQuote,omitempty"`
 
 	// Only for stop orders: Specifies the amount that is used with the triggerType.
 	// Combine this parameter with triggerType and triggerReference to create the desired trigger.
-	TriggerAmount float64 `json:"triggerAmount,omitempty"`
+	TriggerAmount string `json:"triggerAmount,omitempty"`
 
 	// Only for stop orders: Only allows price for now. A triggerAmount of 4000 and a triggerType of price will generate a triggerPrice of 4000.
 	// Combine this parameter with triggerAmount and triggerReference to create the desired trigger.
@@ -399,20 +399,20 @@ type OrderUpdate struct {
 	OrderId string `json:"orderId"`
 
 	// Updates amount to this value (and also changes amountRemaining accordingly).
-	Amount float64 `json:"amount,omitempty"`
+	Amount string `json:"amount,omitempty"`
 
 	// Only for market orders: If amountQuote is specified, [amountQuote] of the quote currency will be bought/sold for the best price available.
-	AmountQuote float64 `json:"amountQuote,omitempty"`
+	AmountQuote string `json:"amountQuote,omitempty"`
 
 	// Updates amountRemaining to this value (and also changes amount accordingly).
-	AmountRemaining float64 `json:"amountRemaining,omitempty"`
+	AmountRemaining string `json:"amountRemaining,omitempty"`
 
 	// Specifies the amount in quote currency that is paid/received for each unit of base currency.
-	Price float64 `json:"price,omitempty"`
+	Price string `json:"price,omitempty"`
 
 	// Only for stop orders: Specifies the amount that is used with the triggerType.
 	// Combine this parameter with triggerType and triggerReference to create the desired trigger.
-	TriggerAmount float64 `json:"triggerAmount,omitempty"`
+	TriggerAmount string `json:"triggerAmount,omitempty"`
 
 	// Only for limit orders: Determines how long orders remain active.
 	// Possible values: Good-Til-Canceled (GTC), Immediate-Or-Cancel (IOC), Fill-Or-Kill (FOK).

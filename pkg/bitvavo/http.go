@@ -27,24 +27,22 @@ func httpDelete[T any](
 	ctx context.Context,
 	url string,
 	params url.Values,
-	updateRateLimit func(ratelimit int64),
-	updateRateLimitResetAt func(resetAt time.Time),
-	config *privateConfig,
+	httpConfg *httpConfig,
+	authConfig *authConfig,
 ) (T, error) {
 	req, _ := http.NewRequestWithContext(ctx, "DELETE", createRequestUrl(url, params), nil)
-	return httpDo[T](req, make([]byte, 0), updateRateLimit, updateRateLimitResetAt, config)
+	return httpDo[T](req, make([]byte, 0), httpConfg, authConfig)
 }
 
 func httpGet[T any](
 	ctx context.Context,
 	url string,
 	params url.Values,
-	updateRateLimit func(ratelimit int64),
-	updateRateLimitResetAt func(resetAt time.Time),
-	config *privateConfig,
+	httpConfg *httpConfig,
+	authConfig *authConfig,
 ) (T, error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET", createRequestUrl(url, params), nil)
-	return httpDo[T](req, make([]byte, 0), updateRateLimit, updateRateLimitResetAt, config)
+	return httpDo[T](req, make([]byte, 0), httpConfg, authConfig)
 }
 
 func httpPost[T any](
@@ -52,9 +50,8 @@ func httpPost[T any](
 	url string,
 	body any,
 	params url.Values,
-	updateRateLimit func(ratelimit int64),
-	updateRateLimitResetAt func(resetAt time.Time),
-	config *privateConfig,
+	httpConfig *httpConfig,
+	authConfig *authConfig,
 ) (T, error) {
 	payload, err := json.Marshal(body)
 	if err != nil {
@@ -63,7 +60,7 @@ func httpPost[T any](
 	}
 
 	req, _ := http.NewRequestWithContext(ctx, "POST", createRequestUrl(url, params), bytes.NewBuffer(payload))
-	return httpDo[T](req, payload, updateRateLimit, updateRateLimitResetAt, config)
+	return httpDo[T](req, payload, httpConfig, authConfig)
 }
 
 func httpPut[T any](
@@ -71,9 +68,8 @@ func httpPut[T any](
 	url string,
 	body any,
 	params url.Values,
-	updateRateLimit func(ratelimit int64),
-	updateRateLimitResetAt func(resetAt time.Time),
-	config *privateConfig,
+	httpConfig *httpConfig,
+	authConfig *authConfig,
 ) (T, error) {
 	payload, err := json.Marshal(body)
 	if err != nil {
@@ -82,45 +78,51 @@ func httpPut[T any](
 	}
 
 	req, _ := http.NewRequestWithContext(ctx, "PUT", createRequestUrl(url, params), bytes.NewBuffer(payload))
-	return httpDo[T](req, payload, updateRateLimit, updateRateLimitResetAt, config)
+	return httpDo[T](req, payload, httpConfig, authConfig)
 }
 
 func httpDo[T any](
 	request *http.Request,
 	body []byte,
-	updateRateLimit func(ratelimit int64),
-	updateRateLimitResetAt func(resetAt time.Time),
-	config *privateConfig,
+	httpConfig *httpConfig,
+	authConfig *authConfig,
 ) (T, error) {
-
 	var empty T
-	if err := setHeaders(request, body, config); err != nil {
+	if err := setHeaders(request, body, authConfig); err != nil {
 		return empty, err
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	debug(httpConfig.printer, fmt.Sprint("http request ", request.Method, " url=", request.URL.String()))
+
+	response, err := httpConfig.client.Do(request)
 	if err != nil {
+		debug(httpConfig.printer, fmt.Sprint("http response error: ", err))
 		return empty, err
 	}
-	defer response.Body.Close()
 
-	if err := updateRateLimits(response, updateRateLimit, updateRateLimitResetAt); err != nil {
+	defer func() {
+		_ = response.Body.Close()
+	}()
+
+	if err := updateRateLimits(response, httpConfig); err != nil {
 		return empty, err
 	}
 
 	if response.StatusCode > http.StatusIMUsed {
-		return empty, unwrapErr(response)
+		return empty, unwrapErr(response, httpConfig.printer)
 	}
 
-	return unwrapBody[T](response)
+	return unwrapBody[T](response, httpConfig.printer)
 }
 
-func unwrapBody[T any](response *http.Response) (T, error) {
+func unwrapBody[T any](response *http.Response, printer DebugPrinter) (T, error) {
 	var data T
 	b, err := io.ReadAll(response.Body)
 	if err != nil {
 		return data, err
 	}
+
+	debug(printer, fmt.Sprint("http response body: ", string(b), " statusCode=", response.StatusCode))
 
 	if err := json.Unmarshal(b, &data); err != nil {
 		return data, err
@@ -129,11 +131,13 @@ func unwrapBody[T any](response *http.Response) (T, error) {
 	return data, nil
 }
 
-func unwrapErr(response *http.Response) error {
+func unwrapErr(response *http.Response, printer DebugPrinter) error {
 	b, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
 	}
+
+	debug(printer, fmt.Sprint("http response body: ", string(b), " statusCode=", response.StatusCode))
 
 	var apiError *ApiError
 	if err := json.Unmarshal(b, &apiError); err != nil {
@@ -144,28 +148,29 @@ func unwrapErr(response *http.Response) error {
 
 func updateRateLimits(
 	response *http.Response,
-	updateRateLimit func(ratelimit int64),
-	updateRateLimitResetAt func(resetAt time.Time),
+	httpConfig *httpConfig,
 ) error {
 	for key, value := range response.Header {
 		if key == headerRatelimit {
 			if len(value) == 0 {
 				return ErrHeaderNoValue(headerRatelimit)
 			}
-			updateRateLimit(util.MustInt64(value[0]))
+			rateLimit := util.MustInt64(value[0])
+			debug(httpConfig.printer, fmt.Sprint("http rate limit is currently: ", rateLimit))
+			httpConfig.updateRateLimit(rateLimit)
 		}
 		if key == headerRatelimitResetAt {
 			if len(value) == 0 {
 				return ErrHeaderNoValue(headerRatelimitResetAt)
 			}
-			updateRateLimitResetAt(time.UnixMilli(util.MustInt64(value[0])))
+			httpConfig.updateRateLimitResetAt(time.UnixMilli(util.MustInt64(value[0])))
 		}
 	}
 	return nil
 }
 
-func setHeaders(request *http.Request, body []byte, config *privateConfig) error {
-	if config == nil {
+func setHeaders(request *http.Request, body []byte, authConfig *authConfig) error {
+	if authConfig == nil {
 		return nil
 	}
 
@@ -173,10 +178,10 @@ func setHeaders(request *http.Request, body []byte, config *privateConfig) error
 
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set(headerAccessKey, config.apiKey)
-	request.Header.Set(headerAccessSignature, crypto.CreateSignature(request.Method, strings.Replace(request.URL.String(), bitvavoURL, "", 1), body, timestamp, config.apiSecret))
+	request.Header.Set(headerAccessKey, authConfig.apiKey)
+	request.Header.Set(headerAccessSignature, crypto.CreateSignature(request.Method, strings.Replace(request.URL.String(), apiURL, "", 1), body, timestamp, authConfig.apiSecret))
 	request.Header.Set(headerAccessTimestamp, fmt.Sprint(timestamp))
-	request.Header.Set(headerAccessWindow, fmt.Sprint(config.windowTime))
+	request.Header.Set(headerAccessWindow, fmt.Sprint(authConfig.windowTime))
 
 	return nil
 }

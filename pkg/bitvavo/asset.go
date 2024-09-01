@@ -37,7 +37,7 @@ type Asset struct {
 	Decimals int64 `json:"decimals"`
 
 	// Fixed fee for depositing this asset.
-	DepositFee float64 `json:"depositFee"`
+	DepositFee string `json:"depositFee"`
 
 	// The minimum amount of network confirmations required before this asset is credited to your account.
 	DepositConfirmations int64 `json:"depositConfirmations"`
@@ -46,10 +46,10 @@ type Asset struct {
 	DepositStatus DepositStatus `json:"depositStatus"`
 
 	// Fixed fee for withdrawing this asset.
-	WithdrawalFee float64 `json:"withdrawalFee"`
+	WithdrawalFee string `json:"withdrawalFee"`
 
 	// The minimum amount for which a withdrawal can be made.
-	WithdrawalMinAmount float64 `json:"withdrawalMinAmount"`
+	WithdrawalMinAmount string `json:"withdrawalMinAmount"`
 
 	// The current withdrawal status.
 	WithdrawalStatus WithdrawalStatus `json:"withdrawalStatus"`
@@ -90,11 +90,11 @@ func (m *Asset) UnmarshalJSON(bytes []byte) error {
 	m.Symbol = symbol
 	m.Name = name
 	m.Decimals = int64(decimals)
-	m.DepositFee = util.IfOrElse(len(depositFee) > 0, func() float64 { return util.MustFloat64(depositFee) }, 0)
+	m.DepositFee = depositFee
 	m.DepositConfirmations = int64(depositConfirmations)
 	m.DepositStatus = *depositStatuses.Parse(depositStatus)
-	m.WithdrawalFee = util.IfOrElse(len(withdrawalFee) > 0, func() float64 { return util.MustFloat64(withdrawalFee) }, 0)
-	m.WithdrawalMinAmount = util.IfOrElse(len(withdrawalMinAmount) > 0, func() float64 { return util.MustFloat64(withdrawalMinAmount) }, 0)
+	m.WithdrawalFee = withdrawalFee
+	m.WithdrawalMinAmount = withdrawalMinAmount
 	m.WithdrawalStatus = *withdrawalStatuses.Parse(withdrawalStatus)
 	m.Networks = networks
 	m.Message = message
