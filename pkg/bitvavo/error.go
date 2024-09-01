@@ -3,7 +3,7 @@ package bitvavo
 import (
 	"fmt"
 
-	"github.com/larscom/bitvavo-go/internal/util"
+	"github.com/larscom/bitvavo-go/v2/internal/util"
 )
 
 // ApiError Complete list of errorCodes: https://docs.bitvavo.com/#tag/Error-messages

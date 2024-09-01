@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/larscom/bitvavo-go/internal/crypto"
-	"github.com/larscom/bitvavo-go/internal/util"
+	"github.com/larscom/bitvavo-go/v2/internal/crypto"
+	"github.com/larscom/bitvavo-go/v2/internal/util"
 )
 
 var (

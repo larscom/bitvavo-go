@@ -27,13 +27,13 @@ using websockets. With the HTTP client you can do things like placing orders or 
 ## 🚀 Installation
 
 ```shell
-go get github.com/larscom/bitvavo-go@latest
+go get github.com/larscom/bitvavo-go/v2@latest
 ```
 
 ## 💡 Usage
 
 ```shell
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 ```
 
 ## 👂 WebSocket
@@ -53,7 +53,7 @@ reauthenticating when the connection has been lost.
 ```go
 package main
 
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 
 func main() {
 	// listen for candle (public) events
@@ -83,7 +83,7 @@ func main() {
 ```go
 package main
 
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 
 func main() {
 	// listen for order (private) events
@@ -113,7 +113,7 @@ also provide your own as long as it implements the `DebugPrinter` interface.
 ```go
 package main
 
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 
 func main() {
 	listener := bitvavo.NewCandlesListener(bitvavo.WithWebSocketDefaultDebugPrinter())
@@ -130,7 +130,7 @@ package main
 
 import (
 	"net/http"
-	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+	"github.com/larscom/bitvavo-go/pkg/bitvavo/v2"
 )
 
 func main() {
@@ -146,7 +146,7 @@ It's possible to create your own wrapper arround the websocket and listen to mul
 ```go
 package main
 
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 
 func main() {
 	onMessage := func(data bitvavo.WebSocketEventData, err error) {
@@ -185,7 +185,7 @@ private endpoints.
 ```go
 package main
 
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 
 func main() {
 	// private http client (includes public as well)
@@ -205,7 +205,7 @@ func main() {
 ```go
 package main
 
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 
 func main() {
 	// public http client
@@ -227,7 +227,7 @@ Some endpoints have additional params which you can provide.
 ```go
 package main
 
-import "github.com/larscom/bitvavo-go/pkg/bitvavo"
+import "github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 
 func main() {
 	client := bitvavo.NewPublicHTTPClient()
@@ -250,7 +250,7 @@ package main
 
 import (
 	"net/http"
-	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+	"github.com/larscom/bitvavo-go/pkg/bitvavo/v2"
 )
 
 func main() {
@@ -270,7 +270,7 @@ The default window time is: `10000` (10 seconds)
 package main
 
 import (
-	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+	"github.com/larscom/bitvavo-go/pkg/bitvavo/v2"
 )
 
 func main() {
@@ -288,7 +288,7 @@ also provide your own as long as it implements the `DebugPrinter` interface.
 package main
 
 import (
-	"github.com/larscom/bitvavo-go/pkg/bitvavo"
+	"github.com/larscom/bitvavo-go/pkg/bitvavo/v2"
 )
 
 func main() {

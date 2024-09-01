@@ -2,7 +2,7 @@ package bitvavo
 
 import (
 	"fmt"
-	"github.com/larscom/bitvavo-go/internal/test"
+	"github.com/larscom/bitvavo-go/v2/internal/test"
 	"testing"
 
 	"github.com/goccy/go-json"

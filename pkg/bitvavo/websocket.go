@@ -10,9 +10,9 @@ import (
 
 	"github.com/goccy/go-json"
 
-	"github.com/larscom/bitvavo-go/internal/crypto"
-	"github.com/larscom/bitvavo-go/internal/socket"
-	"github.com/larscom/bitvavo-go/internal/util"
+	"github.com/larscom/bitvavo-go/v2/internal/crypto"
+	"github.com/larscom/bitvavo-go/v2/internal/socket"
+	"github.com/larscom/bitvavo-go/v2/internal/util"
 	"github.com/orsinium-labs/enum"
 )
 

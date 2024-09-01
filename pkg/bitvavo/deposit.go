@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/larscom/bitvavo-go/internal/util"
+	"github.com/larscom/bitvavo-go/v2/internal/util"
 )
 
 type DepositAsset struct {

@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"github.com/larscom/bitvavo-go/v2/pkg/bitvavo"
 	"log"
 	"os"
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/larscom/bitvavo-go/pkg/bitvavo"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/larscom/bitvavo-go/internal/util"
+	"github.com/larscom/bitvavo-go/v2/internal/util"
 )
 
 var ErrExpectedCandleLenght = func(exp, act int) error { return fmt.Errorf("expected length '%d' for candle, but was: %d", exp, act) }

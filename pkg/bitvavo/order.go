@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/larscom/bitvavo-go/internal/util"
+	"github.com/larscom/bitvavo-go/v2/internal/util"
 	"github.com/orsinium-labs/enum"
 )
 

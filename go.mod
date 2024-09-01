@@ -1,4 +1,4 @@
-module github.com/larscom/bitvavo-go
+module github.com/larscom/bitvavo-go/v2
 
 go 1.22.4
 
