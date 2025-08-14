@@ -199,7 +199,7 @@ type Order struct {
 	Visible bool `json:"visible"`
 
 	// The fills for this order
-	Fills []Fill `json:"fills"`
+	Fills []OrderFill `json:"fills"`
 
 	// How much of this order is filled
 	FilledAmount string `json:"filledAmount"`
@@ -212,6 +212,17 @@ type Order struct {
 
 	// How much fee is paid
 	FeePaid string `json:"feePaid"`
+}
+
+type OrderFill struct {
+	Id          string `json:"id"`
+	Timestamp   uint64 `json:"timestamp"`
+	Amount      string `json:"amount"`
+	Price       string `json:"price"`
+	Taker       bool   `json:"taker"`
+	Fee         string `json:"fee"`
+	FeeCurrency string `json:"feeCurrency"`
+	Settled     bool   `json:"settled"`
 }
 
 func (o *Order) UnmarshalJSON(bytes []byte) error {
@@ -257,7 +268,7 @@ func (o *Order) UnmarshalJSON(bytes []byte) error {
 		if err != nil {
 			return err
 		}
-		fills := make([]Fill, len(fillsAny))
+		fills := make([]OrderFill, len(fillsAny))
 		if err := json.Unmarshal(fillsBytes, &fills); err != nil {
 			return err
 		}
