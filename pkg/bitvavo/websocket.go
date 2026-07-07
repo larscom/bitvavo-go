@@ -76,7 +76,7 @@ func (d *WebSocketEventData) UnmarshalJSON(b []byte) error {
 		return ErrNotEventType
 	}
 
-	d.Event = *webSocketEvents.Parse(event)
+	d.Event = util.OrZero(webSocketEvents.Parse(event))
 	d.Reader = bytes.NewReader(b)
 
 	return nil

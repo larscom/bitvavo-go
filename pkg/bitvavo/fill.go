@@ -68,7 +68,7 @@ func (f *Fill) UnmarshalJSON(bytes []byte) error {
 	f.FillId = fillId
 	f.Timestamp = int64(timestamp)
 	f.Amount = amount
-	f.Side = *sides.Parse(side)
+	f.Side = util.OrZero(sides.Parse(side))
 	f.Price = price
 	f.Taker = taker
 	f.Fee = fee
