@@ -72,11 +72,11 @@ func (m *Market) UnmarshalJSON(bytes []byte) error {
 
 	types := make([]OrderType, len(orderTypesAny))
 	for i := 0; i < len(orderTypesAny); i++ {
-		types[i] = *orderTypes.Parse(orderTypesAny[i].(string))
+		types[i] = util.OrZero(orderTypes.Parse(orderTypesAny[i].(string)))
 	}
 
 	m.Market = market
-	m.Status = *marketStatuses.Parse(status)
+	m.Status = util.OrZero(marketStatuses.Parse(status))
 	m.Base = base
 	m.Quote = quote
 	m.PricePrecision = int64(pricePrecision)
