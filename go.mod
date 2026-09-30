@@ -4,7 +4,7 @@ go 1.24.6
 
 require (
 	github.com/coder/websocket v1.8.15
-	github.com/goccy/go-json v0.11.1
+	github.com/goccy/go-json v0.11.2
 	github.com/joho/godotenv v1.5.1
 	github.com/orsinium-labs/enum v1.5.0
 )
