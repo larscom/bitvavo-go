@@ -89,7 +89,7 @@ func (t *Trade) UnmarshalJSON(bytes []byte) error {
 	t.Market = market
 	t.Amount = amount
 	t.Price = price
-	t.Side = *sides.Parse(side)
+	t.Side = util.OrZero(sides.Parse(side))
 	t.Timestamp = int64(timestamp)
 
 	return nil

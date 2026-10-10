@@ -30,6 +30,8 @@ var (
 	Interval4h  = interval.Add(Interval{"4h"})
 	Interval6h  = interval.Add(Interval{"6h"})
 	Interval8h  = interval.Add(Interval{"8h"})
+	Interval12h = interval.Add(Interval{"12h"})
+	Interval1d  = interval.Add(Interval{"1d"})
 	intervals   = interval.Enum()
 )
 

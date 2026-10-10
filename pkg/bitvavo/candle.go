@@ -101,7 +101,7 @@ func (c *Candle) UnmarshalJSON(bytes []byte) error {
 	}
 
 	c.Market = market
-	c.Interval = *intervals.Parse(interval)
+	c.Interval = util.OrZero(intervals.Parse(interval))
 	c.Timestamp = int64(candle[0].(float64))
 	c.Open = candle[1].(string)
 	c.High = candle[2].(string)

@@ -279,9 +279,9 @@ func (o *Order) UnmarshalJSON(bytes []byte) error {
 	o.Market = market
 	o.Created = int64(created)
 	o.Updated = int64(updated)
-	o.Status = *orderStatuses.Parse(status)
-	o.Side = *sides.Parse(side)
-	o.OrderType = *orderTypes.Parse(orderType)
+	o.Status = util.OrZero(orderStatuses.Parse(status))
+	o.Side = util.OrZero(sides.Parse(side))
+	o.OrderType = util.OrZero(orderTypes.Parse(orderType))
 	o.Amount = amount
 	o.AmountRemaining = amountRemaining
 	o.Price = price
@@ -290,16 +290,16 @@ func (o *Order) UnmarshalJSON(bytes []byte) error {
 	o.TriggerPrice = triggerPrice
 	o.TriggerAmount = triggerAmount
 	if len(triggerType) > 0 {
-		o.TriggerType = *orderTriggerTypes.Parse(triggerType)
+		o.TriggerType = util.OrZero(orderTriggerTypes.Parse(triggerType))
 	}
 	if len(triggerReference) > 0 {
-		o.TriggerReference = *orderTriggerRefs.Parse(triggerReference)
+		o.TriggerReference = util.OrZero(orderTriggerRefs.Parse(triggerReference))
 	}
 	if len(timeInForce) > 0 {
-		o.TimeInForce = *timeInForces.Parse(timeInForce)
+		o.TimeInForce = util.OrZero(timeInForces.Parse(timeInForce))
 	}
 	o.PostOnly = postOnly
-	o.SelfTradePrevention = *selfTradePreventions.Parse(selfTradePrevention)
+	o.SelfTradePrevention = util.OrZero(selfTradePreventions.Parse(selfTradePrevention))
 	o.Visible = visible
 	o.FilledAmount = filledAmount
 	o.FilledAmountQuote = filledAmountQuote

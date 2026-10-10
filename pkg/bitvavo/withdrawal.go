@@ -111,7 +111,7 @@ func (w *WithdrawalHistory) UnmarshalJSON(bytes []byte) error {
 	w.PaymentId = paymentId
 	w.TxId = txId
 	w.Fee = fee
-	w.Status = *withDrawalHistoryStatuses.Parse(status)
+	w.Status = util.OrZero(withDrawalHistoryStatuses.Parse(status))
 
 	return nil
 }

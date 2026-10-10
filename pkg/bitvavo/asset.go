@@ -92,10 +92,10 @@ func (m *Asset) UnmarshalJSON(bytes []byte) error {
 	m.Decimals = int64(decimals)
 	m.DepositFee = depositFee
 	m.DepositConfirmations = int64(depositConfirmations)
-	m.DepositStatus = *depositStatuses.Parse(depositStatus)
+	m.DepositStatus = util.OrZero(depositStatuses.Parse(depositStatus))
 	m.WithdrawalFee = withdrawalFee
 	m.WithdrawalMinAmount = withdrawalMinAmount
-	m.WithdrawalStatus = *withdrawalStatuses.Parse(withdrawalStatus)
+	m.WithdrawalStatus = util.OrZero(withdrawalStatuses.Parse(withdrawalStatus))
 	m.Networks = networks
 	m.Message = message
 

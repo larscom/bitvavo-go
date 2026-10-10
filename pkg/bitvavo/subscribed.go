@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-json"
+	"github.com/larscom/bitvavo-go/v2/internal/util"
 )
 
 var ErrUnexpectedType = func(v any) error { return fmt.Errorf("unexpected type '%s'", v) }
@@ -32,7 +33,7 @@ func (s *Subscribed) UnmarshalJSON(bytes []byte) error {
 	)
 
 	for key, value := range all {
-		channel := *channels.Parse(key)
+		channel := util.OrZero(channels.Parse(key))
 
 		switch v := value.(type) {
 		// without interval
@@ -45,7 +46,7 @@ func (s *Subscribed) UnmarshalJSON(bytes []byte) error {
 		case map[string]any:
 			subscriptionsInterval[channel] = make(map[Interval][]string)
 			for i, m := range v {
-				interval := *intervals.Parse(i)
+				interval := util.OrZero(intervals.Parse(i))
 				markets := m.([]any)
 				subscriptionsInterval[channel][interval] = make([]string, len(markets))
 				for index, market := range markets {
